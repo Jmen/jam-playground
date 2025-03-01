@@ -1,13 +1,17 @@
 import { ITestDriver, Context } from "../drivers/ITestDriver";
 import { expect } from "@playwright/test";
-
+import { Jams } from "./jams";
 export class User {
+  jams: Jams;
+
   private constructor(
     private readonly driver: ITestDriver,
     private context: Context,
     public readonly email: string,
     public readonly password: string,
-  ) {}
+  ) {
+    this.jams = new Jams(driver, context);
+  }
 
   static uniqueEmail() {
     return `test-${Date.now()}-${Math.random().toString(36).substring(2)}@example.com`;

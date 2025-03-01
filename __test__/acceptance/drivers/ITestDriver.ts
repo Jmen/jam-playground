@@ -3,6 +3,13 @@ import { WebContext } from "./webDriver";
 
 export type Context = ApiContext | WebContext;
 
+export interface Jam {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ITestDriver {
   auth: {
     register(email: string, password: string): Promise<Context>;
@@ -14,5 +21,9 @@ export interface ITestDriver {
   user: {
     setMyProfile(context: Context, profile: { username: string }): Promise<void>;
     getMyProfile(context: Context): Promise<{ username: string }>;
+  };
+  jams: {
+    create(context: Context, name: string): Promise<Jam>;
+    getAll(context: Context): Promise<Jam[]>;
   };
 }

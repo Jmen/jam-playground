@@ -4,7 +4,7 @@ import { ITestDriver } from "./drivers/ITestDriver";
 import { PlaywrightWebDriver } from "./drivers/webDriver";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
-const DRIVER = process.env.DRIVER?.toLowerCase() || "api";
+const DRIVER = process.env.DRIVER?.toLowerCase() || "web";
 
 export const createDriver = (browser: Browser): ITestDriver => {
   switch (DRIVER) {

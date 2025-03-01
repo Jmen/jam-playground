@@ -16,7 +16,7 @@
     "test:acceptance": "npx playwright test",
     "test:acceptance:api": "export DRIVER=api && npm run test:acceptance -- --project=chromium",
     "test:acceptance:web": "export DRIVER=web && npm run test:acceptance",
-    "test:acceptance:ui": "export DRIVER=web && npm run test:acceptance -- --ui",
+    "test:acceptance:web:ui": "export DRIVER=web && npm run test:acceptance -- --ui",
     "pre-commit": "next lint && npm run prettier && npm run test:unit && npm run test:acceptance:api && npm run test:acceptance:web",
     "test:flakiness-check": "npm run pre-commit && npm run pre-commit && npm run pre-commit"
   },

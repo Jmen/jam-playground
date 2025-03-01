@@ -6,7 +6,6 @@ import { UserDetails } from "@/components/profile/userDetails";
 import { ProfileForm } from "@/components/profile/profileForm";
 import { GoogleProfile } from "@/components/auth/googleProfile";
 import { ResetPasswordForm } from "@/components/auth/resetPasswordForm";
-import { SignOutButton } from "@/components/auth/signOutButton";
 
 export default async function Page() {
   await redirectIfNotLoggedIn();
@@ -24,7 +23,6 @@ export default async function Page() {
         <ProfileForm />
         <GoogleProfile user={user} />
         <ResetPasswordForm user={user} />
-        <SignOutButton />
       </div>
     </div>
   );
