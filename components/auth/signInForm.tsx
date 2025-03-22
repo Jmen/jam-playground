@@ -50,7 +50,7 @@ export function SignInForm() {
       setError(result.error.message);
     } else {
       setError(null);
-      router.push("/account");
+      router.push("/");
     }
   }
 

@@ -8,8 +8,12 @@ export const GET = withErrorHandler(
   withAuth(async (request: NextRequest, { supabase }) => {
     const result = await getProfileAction(supabase);
 
-    if (result.error) {
-      logger.error({ error: result.error }, "Failed to get profile");
+    if (result?.userError) {
+      return badRequest(result.userError.code, result.userError.message);
+    }
+
+    if (result?.serverError) {
+      logger.error({ error: result.serverError }, "Failed to get profile");
       return internalServerError();
     }
 
@@ -27,8 +31,13 @@ export const POST = withErrorHandler(
 
     const result = await updateProfileAction(username, supabase);
 
-    if (result?.error) {
-      return badRequest(result.error.code, result.error.message);
+    if (result?.userError) {
+      return badRequest(result.userError.code, result.userError.message);
+    }
+
+    if (result?.serverError) {
+      logger.error({ error: result.serverError }, "Failed to update profile");
+      return internalServerError();
     }
 
     return ok({ username: result.data.username });

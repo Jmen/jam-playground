@@ -43,7 +43,7 @@ export function RegisterForm() {
         setError(result.error.message);
       } else {
         setError(null);
-        router.push("/account");
+        router.push("/");
       }
     } catch (error) {
       logger.error({ error }, "Error during registration");

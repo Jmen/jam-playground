@@ -12,7 +12,7 @@ export const getProfileAction = async (supabase?: SupabaseClient) => {
   } = await supabaseClient.auth.getUser();
 
   if (userError || !user) {
-    return { error: { code: "unauthorized", message: "user not found" } };
+    return { userError: { code: "unauthorized", message: "user not found" } };
   }
 
   const { data, error: profileError } = await supabaseClient
@@ -22,7 +22,7 @@ export const getProfileAction = async (supabase?: SupabaseClient) => {
     .limit(1);
 
   if (profileError) {
-    return { error: { code: profileError.code, message: profileError.message } };
+    return { serverError: { code: profileError.code, message: profileError.message } };
   }
 
   if (data?.length === 0) {
@@ -41,7 +41,7 @@ export const updateProfileAction = async (username: string, supabase?: SupabaseC
   } = await supabaseClient.auth.getUser();
 
   if (userError || !user) {
-    return { error: { code: "unauthorized", message: "user not found" } };
+    return { userError: { code: "unauthorized", message: "user not found" } };
   }
 
   const { data, error } = await supabaseClient
@@ -51,7 +51,7 @@ export const updateProfileAction = async (username: string, supabase?: SupabaseC
     .single();
 
   if (error) {
-    return { error: { code: error.code, message: error.message } };
+    return { serverError: { code: error.code, message: error.message } };
   }
 
   return { data };

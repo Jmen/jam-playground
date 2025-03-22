@@ -22,6 +22,10 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         await page.waitForLoadState("networkidle");
 
+        await page.goto("/account");
+
+        await page.waitForLoadState("networkidle");
+
         await expect(page.getByText(email)).toBeVisible();
 
         return { page };
@@ -37,6 +41,10 @@ export class PlaywrightWebDriver implements ITestDriver {
         await page.getByLabel(/email/i).fill(email);
         await page.getByLabel(/password/i).fill(password);
         await page.getByRole("button", { name: /sign in/i }).click();
+
+        await page.waitForLoadState("networkidle");
+
+        await page.goto("/account");
 
         await page.waitForLoadState("networkidle");
 
@@ -64,7 +72,12 @@ export class PlaywrightWebDriver implements ITestDriver {
     signOut: async (context: WebContext): Promise<void> => {
       await test.step("Sign Out", async () => {
         const { page } = context;
-        await page.getByRole("button", { name: /sign out/i }).click();
+        
+        // Click on the Account dropdown menu first
+        await page.getByRole("button", { name: /account/i }).click();
+        
+        // Then click on the Sign out button inside the dropdown
+        await page.getByRole("menuitem").filter({ hasText: /sign out/i }).click();
 
         await page.waitForLoadState("networkidle");
       });
@@ -111,30 +124,41 @@ export class PlaywrightWebDriver implements ITestDriver {
   };
 
   jams = {
-    create: async (context: WebContext, name: string): Promise<Jam> => {
+    create: async (context: WebContext, name: string, description: string): Promise<void> => {
       return await test.step("Create Jam", async () => {
         const { page } = context;
-        await page.goto("/home");
-        await page.getByRole("button", { name: /create jam/i }).click();
+        await page.goto("/");
+        await page.getByRole("link", { name: /create a jam/i }).click();
 
         await page.waitForLoadState("networkidle");
 
-        return {
-          id: "1",
-          name,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+        await page.getByLabel(/name/i).fill(name);
+        await page.getByLabel(/description/i).fill(description);
+        await page.getByRole("button", { name: /create/i }).click();
+
+        await page.waitForLoadState("networkidle");
       });
     },
     getAll: async (context: WebContext): Promise<Jam[]> => {
       return await test.step("Get All Jams", async () => {
         const { page } = context;
-        await page.goto("/home");
+        await page.goto("/");
 
         await page.waitForLoadState("networkidle");
 
-        return [];
+        const jams = await page.getByRole("listitem").all();
+
+        const jamsData = await Promise.all(
+          jams.map(async (jam) => ({
+            id: (await jam.getAttribute("data-id")) ?? "",
+            name: (await jam.getByText(/name/i).textContent()) ?? "",
+            description: (await jam.getByText(/description/i).textContent()) ?? "",
+            createdAt: (await jam.getByText(/created at/i).textContent()) ?? "",
+            updatedAt: (await jam.getByText(/updated at/i).textContent()) ?? "",
+          })),
+        );
+
+        return jamsData;
       });
     },
   };
