@@ -128,7 +128,7 @@ export class PlaywrightWebDriver implements ITestDriver {
       return await test.step("Create Jam", async () => {
         const { page } = context;
         await page.goto("/");
-        await page.getByRole("link", { name: /create a jam/i }).click();
+        await page.getByRole("link", { name: /start a jam/i }).click();
 
         await page.waitForLoadState("networkidle");
 
@@ -142,23 +142,50 @@ export class PlaywrightWebDriver implements ITestDriver {
     getAll: async (context: WebContext): Promise<Jam[]> => {
       return await test.step("Get All Jams", async () => {
         const { page } = context;
+
         await page.goto("/");
-
         await page.waitForLoadState("networkidle");
-
-        const jams = await page.getByRole("listitem").all();
-
+        
+        const jams = await page.locator('[data-testid="jam-card"]').all();
+        
         const jamsData = await Promise.all(
-          jams.map(async (jam) => ({
-            id: (await jam.getAttribute("data-id")) ?? "",
-            name: (await jam.getByText(/name/i).textContent()) ?? "",
-            description: (await jam.getByText(/description/i).textContent()) ?? "",
-            createdAt: (await jam.getByText(/created at/i).textContent()) ?? "",
-            updatedAt: (await jam.getByText(/updated at/i).textContent()) ?? "",
-          })),
+          jams.map(async (jam) => {
+            const nameText = (await jam.locator('[data-testid="jam-name"]').textContent()) ?? "";
+            const descriptionText = (await jam.locator('[data-testid="jam-description"]').textContent()) ?? "";
+            
+            return {
+              id: (await jam.getAttribute("data-id")) ?? "",
+              name: nameText.replace(/^Name:\s*/, ""),
+              description: descriptionText.replace(/^Description:\s*/, ""),
+              createdAt: (await jam.locator('[data-testid="jam-created-at"]').textContent()) ?? "",
+              updatedAt: (await jam.locator('[data-testid="jam-updated-at"]').textContent()) ?? "",
+            };
+          })
         );
 
         return jamsData;
+      });
+    },
+    get: async (context: WebContext, name: string): Promise<Jam | undefined> => {
+      return await test.step("Get Jam", async () => {
+        const { page } = context;
+        
+        await page.waitForTimeout(1000);
+        
+        const url = page.url();
+        
+        const isHomePage = url.endsWith('/') || 
+                         url.includes('/jam-playground') || 
+                         url.includes('localhost') || 
+                         url.includes('127.0.0.1');
+        
+        if (!isHomePage) {
+          throw new Error(`Test failed: Not redirected to home page. Current URL: ${url}`);
+        }
+        
+        const jams = await this.jams.getAll(context);
+        
+        return jams.find(jam => jam.name === name);
       });
     },
   };

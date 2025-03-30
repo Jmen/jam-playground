@@ -1,4 +1,4 @@
-import { ITestDriver } from "./ITestDriver";
+import { ITestDriver, Jam } from "./ITestDriver";
 
 export interface ApiContext {
   accessToken?: string;
@@ -135,6 +135,44 @@ export class ApiDriver implements ITestDriver {
       const body = await this.checkResponse(request, response);
 
       return body.data;
+    },
+  };
+
+  jams = {
+    create: async (context: ApiContext, name: string, description: string): Promise<void> => {
+      const request = new Request(`${this.baseUrl}/api/jams`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${context.accessToken}`,
+          "X-Refresh-Token": context.refreshToken || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, description }),
+      });
+
+      const response = await fetch(request);
+
+      await this.checkResponse(request, response);
+    },
+    getAll: async (context: ApiContext): Promise<Jam[]> => {
+      const request = new Request(`${this.baseUrl}/api/jams`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${context.accessToken}`,
+          "X-Refresh-Token": context.refreshToken || "",
+        },
+      });
+
+      const response = await fetch(request);
+
+      const body = await this.checkResponse(request, response);
+
+      return body.data;
+    },
+    get: async (context: ApiContext, name: string): Promise<Jam | undefined> => {
+      const jams = await this.jams.getAll(context);
+
+      return jams.find(jam => jam.name === name);
     },
   };
 }

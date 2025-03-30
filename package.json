@@ -13,7 +13,7 @@
     "supabase:db:reset": "supabase db reset --workdir ./lib",
     "supabase:db:diff": "supabase db diff --workdir ./lib",
     "test:unit": "jest app",
-    "test:acceptance": "npx playwright test",
+    "test:acceptance": "npx playwright test --reporter=list",
     "test:acceptance:api": "export DRIVER=api && npm run test:acceptance -- --project=chromium",
     "test:acceptance:web": "export DRIVER=web && npm run test:acceptance",
     "test:acceptance:web:ui": "export DRIVER=web && npm run test:acceptance -- --ui",

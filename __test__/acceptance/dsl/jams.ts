@@ -1,4 +1,4 @@
-import { Context, Jam, ITestDriver } from "../drivers/ITestDriver";
+import { Context, ITestDriver } from "../drivers/ITestDriver";
 import { expect } from "@playwright/test";
 export class Jams {
   constructor(
@@ -6,15 +6,13 @@ export class Jams {
     private context: Context,
   ) {}
 
-  async create(name: string): Promise<Jam> {
-    console.log(this.driver);
-
-    return await this.driver.jams.create(this.context, name);
+  async create(name: string, description: string): Promise<void> {
+    return await this.driver.jams.create(this.context, name, description);
   }
 
-  async contains(jam: Jam): Promise<void> {
-    const jams = await this.driver.jams.getAll(this.context);
-
-    expect(jams).toContain(jam);
+  async contains(name: string): Promise<void> {
+    const jam = await this.driver.jams.get(this.context, name);
+    
+    expect(jam).toBeTruthy();
   }
 }
