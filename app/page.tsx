@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/clients/server";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getJamsCommand } from "@/app/api/jams/commands";
+import { JamCard } from "@/components/JamCard";
 
 export default async function Page() {
   const supabase = await createClient();
@@ -30,25 +30,8 @@ export default async function Page() {
       {jams.data && jams.data.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jams.data.map((jam) => (
-            <Link href={`/jams/${jam.id}`} key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
-              <Card key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
-                <CardHeader>
-                  <CardTitle>
-                    <span data-testid="jam-name">Name: {jam.name}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-2">
-                    <span data-testid="jam-id">ID: {jam.id}</span>
-                  </p>
-                  <p className="mb-2">
-                    <span data-testid="jam-description">Description: {jam.description}</span>
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span data-testid="jam-created-at">Created at: {new Date(jam.created_at).toLocaleString()}</span>
-                  </p>
-                </CardContent>
-              </Card>
+            <Link key={jam.id} href={`/jams/${jam.id}`}>
+              <JamCard jam={jam} isListItem={true} />
             </Link>
           ))}
         </div>
