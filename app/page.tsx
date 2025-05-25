@@ -30,8 +30,8 @@ export default async function Page() {
       {jams.data && jams.data.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jams.data.map((jam) => (
-            <Link key={jam.id} href={`/jams/${jam.id}`} data-id={jam.id} role="listitem" data-testid="jam-card">
-              <JamCard jam={jam} />
+            <Link key={jam.id} href={`/jams/${jam.id}`}>
+              <JamCard jam={jam} isListItem={true} />
             </Link>
           ))}
         </div>
