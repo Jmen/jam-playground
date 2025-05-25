@@ -87,10 +87,13 @@ export async function createJamCommand(
     };
   }
 
-  const humanReadableId: string = uniqueNamesGenerator({
-    dictionaries: [adjectives, adjectives, colors, animals],
-    separator: "_",
-  });
+  const idResult = await generateUniqueJamId(supabase);
+
+  if ("serverError" in idResult) {
+    return idResult;
+  }
+
+  const humanReadableId = idResult.data;
 
   const { data, error } = await supabase
     .from("jams")
@@ -111,5 +114,38 @@ export async function createJamCommand(
 
   return {
     data: { id: data.human_readable_id, name: data.name, description: data.description, created_at: data.created_at },
+  };
+}
+
+async function generateUniqueJamId(
+  supabase: SupabaseClient,
+): Promise<{ data: string } | { serverError: { code: string; message: string } }> {
+  const maxAttempts = 10;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const candidateId = uniqueNamesGenerator({
+      dictionaries: [adjectives, adjectives, colors, animals],
+      separator: "_",
+    });
+
+    const { data: existingJam, error } = await supabase
+      .from("jams")
+      .select("human_readable_id")
+      .eq("human_readable_id", candidateId)
+      .limit(1);
+
+    if (error) {
+      return {
+        serverError: { code: "internal_server_error", message: "Failed to check ID uniqueness" },
+      };
+    }
+
+    if (!existingJam || existingJam.length === 0) {
+      return { data: candidateId };
+    }
+  }
+
+  return {
+    serverError: { code: "internal_server_error", message: "Failed to generate unique ID" },
   };
 }

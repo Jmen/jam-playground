@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { withAuth, withErrorHandler } from "../handlers";
 import { createJamCommand, getJamsCommand } from "./commands";
-import { ok } from "../apiResponse";
+import { internalServerError, ok } from "../apiResponse";
 
 export const GET = withErrorHandler(
   withAuth(async (_: NextRequest, { supabase }) => {
@@ -15,6 +15,10 @@ export const POST = withErrorHandler(
     const json = await request.json();
 
     const result = await createJamCommand(json, supabase);
+
+    if ("serverError" in result) {
+      return internalServerError();
+    }
 
     return ok(result.data);
   }),
