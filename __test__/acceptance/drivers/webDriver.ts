@@ -72,12 +72,15 @@ export class PlaywrightWebDriver implements ITestDriver {
     signOut: async (context: WebContext): Promise<void> => {
       await test.step("Sign Out", async () => {
         const { page } = context;
-        
+
         // Click on the Account dropdown menu first
         await page.getByRole("button", { name: /account/i }).click();
-        
+
         // Then click on the Sign out button inside the dropdown
-        await page.getByRole("menuitem").filter({ hasText: /sign out/i }).click();
+        await page
+          .getByRole("menuitem")
+          .filter({ hasText: /sign out/i })
+          .click();
 
         await page.waitForLoadState("networkidle");
       });
@@ -124,7 +127,7 @@ export class PlaywrightWebDriver implements ITestDriver {
   };
 
   jams = {
-    create: async (context: WebContext, name: string, description: string): Promise<void> => {
+    create: async (context: WebContext, name: string, description: string): Promise<Jam> => {
       return await test.step("Create Jam", async () => {
         const { page } = context;
         await page.goto("/");
@@ -137,6 +140,20 @@ export class PlaywrightWebDriver implements ITestDriver {
         await page.getByRole("button", { name: /create/i }).click();
 
         await page.waitForLoadState("networkidle");
+
+        await expect(page.locator('[data-testid="jam-card"]')).toBeVisible();
+
+        const jamId = (await page.locator('[data-testid="jam-id"]').textContent()) || "";
+        const nameText = (await page.locator('[data-testid="jam-name"]').textContent()) || "";
+        const descriptionText = (await page.locator('[data-testid="jam-description"]').textContent()) || "";
+        const createdAt = (await page.locator('[data-testid="jam-created-at"]').textContent()) || "";
+
+        return {
+          id: jamId,
+          name: nameText.replace(/^Name:\s*/, ""),
+          description: descriptionText.replace(/^Description:\s*/, ""),
+          createdAt,
+        };
       });
     },
     getAll: async (context: WebContext): Promise<Jam[]> => {
@@ -145,22 +162,23 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         await page.goto("/");
         await page.waitForLoadState("networkidle");
-        
-        const jams = await page.locator('[data-testid="jam-card"]').all();
-        
+
+        const jamCards = await page.locator('[data-testid="jam-card"]').all();
+
         const jamsData = await Promise.all(
-          jams.map(async (jam) => {
-            const nameText = (await jam.locator('[data-testid="jam-name"]').textContent()) ?? "";
-            const descriptionText = (await jam.locator('[data-testid="jam-description"]').textContent()) ?? "";
-            
+          jamCards.map(async (jamCard) => {
+            const id = (await jamCard.locator('[data-testid="jam-id"]').textContent()) ?? "";
+            const nameText = (await jamCard.locator('[data-testid="jam-name"]').textContent()) ?? "";
+            const descriptionText = (await jamCard.locator('[data-testid="jam-description"]').textContent()) ?? "";
+            const createdAt = (await jamCard.locator('[data-testid="jam-created-at"]').textContent()) ?? "";
+
             return {
-              id: (await jam.getAttribute("data-id")) ?? "",
+              id,
               name: nameText.replace(/^Name:\s*/, ""),
               description: descriptionText.replace(/^Description:\s*/, ""),
-              createdAt: (await jam.locator('[data-testid="jam-created-at"]').textContent()) ?? "",
-              updatedAt: (await jam.locator('[data-testid="jam-updated-at"]').textContent()) ?? "",
+              createdAt,
             };
-          })
+          }),
         );
 
         return jamsData;
@@ -169,23 +187,24 @@ export class PlaywrightWebDriver implements ITestDriver {
     get: async (context: WebContext, name: string): Promise<Jam | undefined> => {
       return await test.step("Get Jam", async () => {
         const { page } = context;
-        
+
         await page.waitForTimeout(1000);
-        
+
         const url = page.url();
-        
-        const isHomePage = url.endsWith('/') || 
-                         url.includes('/jam-playground') || 
-                         url.includes('localhost') || 
-                         url.includes('127.0.0.1');
-        
+
+        const isHomePage =
+          url.endsWith("/") ||
+          url.includes("/jam-playground") ||
+          url.includes("localhost") ||
+          url.includes("127.0.0.1");
+
         if (!isHomePage) {
           throw new Error(`Test failed: Not redirected to home page. Current URL: ${url}`);
         }
-        
+
         const jams = await this.jams.getAll(context);
-        
-        return jams.find(jam => jam.name === name);
+
+        return jams.find((jam) => jam.name === name);
       });
     },
   };

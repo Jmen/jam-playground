@@ -35,7 +35,9 @@ function UserNavigation() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[180px] p-2">
         <DropdownMenuItem asChild className="px-3 py-2 cursor-pointer">
-          <Link href="/account" className="w-full">My Account</Link>
+          <Link href="/account" className="w-full">
+            My Account
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem className="px-3 py-2 cursor-pointer">
           <SignOutButton size="sm" className="w-full justify-start p-0 h-auto font-normal" variant="ghost" />
@@ -53,9 +55,7 @@ export function NavigationBar({ user }: NavigationBarProps) {
         <Button size="sm" asChild>
           <Link href="/">Home</Link>
         </Button>
-        <div className="flex items-center gap-4">
-          {user ? <UserNavigation /> : <GuestNavigation />}
-        </div>
+        <div className="flex items-center gap-4">{user ? <UserNavigation /> : <GuestNavigation />}</div>
       </div>
     </nav>
   );

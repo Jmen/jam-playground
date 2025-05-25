@@ -6,7 +6,9 @@ import { getJamsAction } from "@/app/(pages)/jams/actions";
 
 export default async function Page() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const jams = await getJamsAction();
 
@@ -24,24 +26,26 @@ export default async function Page() {
       {jams && jams.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jams.map((jam) => (
-            <Card key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
-              <CardHeader>
-                <CardTitle>
-                  <span data-testid="jam-name">Name: {jam.name}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-2">
-                  <span data-testid="jam-description">Description: {jam.description}</span>
-                </p>
-                <p className="text-sm text-gray-500">
-                  <span data-testid="jam-created-at">Created at: {new Date(jam.created_at).toLocaleString()}</span>
-                </p>
-                <p className="text-sm text-gray-500">
-                  <span data-testid="jam-updated-at">Updated at: {new Date(jam.updated_at).toLocaleString()}</span>
-                </p>
-              </CardContent>
-            </Card>
+            <Link href={`/jams/${jam.id}`} key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
+              <Card key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
+                <CardHeader>
+                  <CardTitle>
+                    <span data-testid="jam-name">Name: {jam.name}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">
+                    <span data-testid="jam-id">ID: {jam.human_readable_id}</span>
+                  </p>
+                  <p className="mb-2">
+                    <span data-testid="jam-description">Description: {jam.description}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <span data-testid="jam-created-at">Created at: {new Date(jam.created_at).toLocaleString()}</span>
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       ) : (

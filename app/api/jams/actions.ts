@@ -1,12 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/clients/server";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
-export async function getJamsAction() {
-  const supabase = await createClient();
-
+export async function getJamsAction(supabase?: SupabaseClient) {
+  if (!supabase) {
+    supabase = await createClient();
+  }
   const { data: jams, error } = await supabase
     .from("jams")
     .select("*")
@@ -17,7 +19,13 @@ export async function getJamsAction() {
     throw new Error(error.message);
   }
 
-  return jams || [];
+  return (
+    jams.map((jam) => ({
+      id: jam.human_readable_id,
+      name: jam.name,
+      description: jam.description,
+    })) || []
+  );
 }
 
 export async function getJamAction(id: string) {
@@ -32,8 +40,13 @@ export async function getJamAction(id: string) {
   return jams?.length > 0 ? jams[0] : undefined;
 }
 
-export async function createJamAction(formData: FormData) {
-  const supabase = await createClient();
+export async function createJamAction(
+  { name, description }: { name: string; description: string },
+  supabase?: SupabaseClient,
+) {
+  if (!supabase) {
+    supabase = await createClient();
+  }
 
   const {
     data: { user },
@@ -42,10 +55,7 @@ export async function createJamAction(formData: FormData) {
   if (!user) {
     redirect("/auth");
   }
-
-  const name = formData.get("name") as string;
-  const description = formData.get("description") as string;
-
+  
   if (!name || !description) {
     throw new Error("Name and description are required");
   }
@@ -74,5 +84,5 @@ export async function createJamAction(formData: FormData) {
     throw new Error("Failed to create jam");
   }
 
-  redirect(`/jams/${data.human_readable_id}`);
+  return { data: { id: data.human_readable_id, name: data.name, description: data.description } };
 }

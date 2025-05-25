@@ -24,11 +24,14 @@ export function ProfileForm() {
 
   useEffect(() => {
     getProfileAction().then((result) => {
-      if (result.error) {
-        logger.error("Failed to load profile", { error: result.error });
-        setError(result.error.message);
+      const error = result.userError || result.serverError;
+
+      if (error) {
+        logger.error("Failed to load profile", { error });
+        setError(error.message);
         return;
       }
+
       setUsername(result.data.username || "");
       setIsLoading(false);
     });
@@ -43,8 +46,10 @@ export function ProfileForm() {
 
     const result = await updateProfileAction(username);
 
-    if (result.error) {
-      setError(result.error.message);
+    const error = result.userError || result.serverError;
+
+    if (error) {
+      setError(error.message);
       return;
     }
 

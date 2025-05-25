@@ -12,8 +12,8 @@ test.describe("Jams", () => {
   test("can create a jam", async ({ browser }) => {
     const user = await User.register(createDriver(browser));
 
-    await user.jams.create("Test Jam", "Test Description");
+    const jam = await user.jams.create("Test Jam", "Test Description");
 
-    await user.jams.contains("Test Jam");
+    await user.jams.contains(jam.id);
   });
 });

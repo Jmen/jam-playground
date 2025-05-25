@@ -9,8 +9,6 @@ export class ApiDriver implements ITestDriver {
   constructor(private readonly baseUrl: string) {}
 
   async checkResponse(request: Request, response: Response, expectedStatusCode: number = 200): Promise<any> {
-    const responseBody = await response.json();
-
     if (response.status !== expectedStatusCode) {
       console.error("REQUEST:");
       console.error(` method: ${request.method}`);
@@ -19,12 +17,12 @@ export class ApiDriver implements ITestDriver {
       console.error("RESPONSE:");
       console.error(` expected status: ${expectedStatusCode}`);
       console.error(` actual   status: ${response.status}`);
-      console.error(` data: ${JSON.stringify(responseBody)}`);
+      console.error(` data: ${JSON.stringify(await response.json())}`);
 
       throw new Error(response.statusText);
     }
 
-    return responseBody;
+    return await response.json();
   }
 
   auth = {
@@ -139,7 +137,7 @@ export class ApiDriver implements ITestDriver {
   };
 
   jams = {
-    create: async (context: ApiContext, name: string, description: string): Promise<void> => {
+    create: async (context: ApiContext, name: string, description: string): Promise<Jam> => {
       const request = new Request(`${this.baseUrl}/api/jams`, {
         method: "POST",
         headers: {
@@ -152,7 +150,9 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      await this.checkResponse(request, response);
+      const body = await this.checkResponse(request, response);
+
+      return body.data;
     },
     getAll: async (context: ApiContext): Promise<Jam[]> => {
       const request = new Request(`${this.baseUrl}/api/jams`, {
@@ -170,9 +170,7 @@ export class ApiDriver implements ITestDriver {
       return body.data;
     },
     get: async (context: ApiContext, name: string): Promise<Jam | undefined> => {
-      const jams = await this.jams.getAll(context);
-
-      return jams.find(jam => jam.name === name);
+      throw new Error("Not implemented");
     },
   };
 }
