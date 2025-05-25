@@ -4,7 +4,7 @@ import { createJamCommand } from "@/app/api/jams/commands";
 import { createClient } from "@/lib/supabase/clients/server";
 import { redirect } from "next/navigation";
 
-export async function createJamAction(formData: FormData) {
+export async function createJamAction(_prevState: unknown, formData: FormData) {
   const supabase = await createClient();
 
   const {
@@ -24,5 +24,11 @@ export async function createJamAction(formData: FormData) {
 
   const result = await createJamCommand({ name, description }, supabase);
 
-  redirect(`/jams/${result.data.id}`);
+  if (result.serverError || result.userError) {
+    return result;
+  }
+
+  if (result.data) {
+    redirect(`/jams/${result.data.id}`);
+  }
 }

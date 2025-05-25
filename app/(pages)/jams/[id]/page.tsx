@@ -7,9 +7,17 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   const { id } = await params;
 
-  const jam = await getJamCommand(id);
+  const result = await getJamCommand(id);
 
-  if (!jam) {
+  if (result.serverError) {
+    return <div>Error: {result.serverError.message}</div>;
+  }
+
+  if (result.userError) {
+    return <div>Error: {result.userError.message}</div>;
+  }
+
+  if (!result.data) {
     return (
       <div className="container max-w-2xl mx-auto py-10">
         <Card>
@@ -23,21 +31,21 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   return (
     <div className="container max-w-2xl mx-auto py-10">
-      <Card key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
+      <Card key={result.data.id} data-id={result.data.id} role="listitem" data-testid="jam-card">
         <CardHeader>
           <CardTitle>
-            <span data-testid="jam-name">Name: {jam.name}</span>
+            <span data-testid="jam-name">Name: {result.data.name}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-2">
-            <span data-testid="jam-id">ID: {jam.id}</span>
+            <span data-testid="jam-id">ID: {result.data.id}</span>
           </p>
           <p className="mb-2">
-            <span data-testid="jam-description">Description: {jam.description}</span>
+            <span data-testid="jam-description">Description: {result.data.description}</span>
           </p>
           <p className="text-sm text-gray-500">
-            <span data-testid="jam-created-at">Created at: {new Date(jam.created_at).toLocaleString()}</span>
+            <span data-testid="jam-created-at">Created at: {new Date(result.data.created_at).toLocaleString()}</span>
           </p>
         </CardContent>
       </Card>

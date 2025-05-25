@@ -16,17 +16,20 @@ export async function getJamsCommand(supabase?: SupabaseClient) {
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    return {
+      serverError: { code: "internal_server_error", message: "Failed to get jams" },
+    };
   }
 
-  return (
-    jams.map((jam) => ({
-      id: jam.human_readable_id,
-      name: jam.name,
-      description: jam.description,
-      created_at: jam.created_at,
-    })) || []
-  );
+  return {
+    data:
+      jams.map((jam) => ({
+        id: jam.human_readable_id,
+        name: jam.name,
+        description: jam.description,
+        created_at: jam.created_at,
+      })) || [],
+  };
 }
 
 export async function getJamCommand(id: string) {
@@ -35,19 +38,25 @@ export async function getJamCommand(id: string) {
   const { data: jams, error } = await supabase.from("jams").select("*").eq("human_readable_id", id).limit(1);
 
   if (error) {
-    throw new Error(error.message);
+    return {
+      serverError: { code: "internal_server_error", message: "Failed to get jam" },
+    };
   }
 
   if (jams?.length > 0) {
     return {
-      id: jams[0].human_readable_id,
-      name: jams[0].name,
-      description: jams[0].description,
-      created_at: jams[0].created_at,
+      data: {
+        id: jams[0].human_readable_id,
+        name: jams[0].name,
+        description: jams[0].description,
+        created_at: jams[0].created_at,
+      },
     };
   }
 
-  return undefined;
+  return {
+    userError: { code: "not_found", message: "Jam not found" },
+  };
 }
 
 export async function createJamCommand(
@@ -66,8 +75,16 @@ export async function createJamCommand(
     redirect("/auth");
   }
 
-  if (!name || !description) {
-    throw new Error("Name and description are required");
+  if (!name) {
+    return {
+      userError: { code: "name_required", message: "Name is required" },
+    };
+  }
+
+  if (!description) {
+    return {
+      userError: { code: "description_required", message: "Description is required" },
+    };
   }
 
   const humanReadableId: string = uniqueNamesGenerator({
@@ -86,12 +103,10 @@ export async function createJamCommand(
     .select()
     .single();
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!data) {
-    throw new Error("Failed to create jam");
+  if (error || !data) {
+    return {
+      serverError: { code: "internal_server_error", message: "Failed to create jam" },
+    };
   }
 
   return {

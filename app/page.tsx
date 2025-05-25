@@ -12,6 +12,10 @@ export default async function Page() {
 
   const jams = await getJamsCommand();
 
+  if (jams.serverError) {
+    return <div>Error: {jams.serverError.message}</div>;
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col items-center justify-between gap-6 mb-10">
@@ -23,9 +27,9 @@ export default async function Page() {
         )}
       </div>
 
-      {jams && jams.length > 0 ? (
+      {jams.data && jams.data.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {jams.map((jam) => (
+          {jams.data.map((jam) => (
             <Link href={`/jams/${jam.id}`} key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
               <Card key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
                 <CardHeader>

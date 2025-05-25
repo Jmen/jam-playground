@@ -6,7 +6,7 @@ import { ok } from "../apiResponse";
 export const GET = withErrorHandler(
   withAuth(async (_: NextRequest, { supabase }) => {
     const result = await getJamsCommand(supabase);
-    return ok(result);
+    return ok(result.data);
   }),
 );
 
