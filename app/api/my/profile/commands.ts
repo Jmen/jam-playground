@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 
-export const getProfileAction = async (supabase?: SupabaseClient) => {
+export const getProfileCommand = async (supabase?: SupabaseClient) => {
   const supabaseClient = supabase || (await createClient());
 
   const {
@@ -32,7 +32,7 @@ export const getProfileAction = async (supabase?: SupabaseClient) => {
   return { data: data[0] };
 };
 
-export const updateProfileAction = async (username: string, supabase?: SupabaseClient) => {
+export const updateProfileCommand = async (username: string, supabase?: SupabaseClient) => {
   const supabaseClient = supabase || (await createClient());
 
   const {

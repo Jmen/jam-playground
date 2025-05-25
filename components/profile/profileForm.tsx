@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DebouncedButton } from "../debouncedButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getProfileAction, updateProfileAction } from "./actions";
+import { getProfileCommand, updateProfileCommand } from "@/app/api/my/profile/commands";
 import { logger } from "@/lib/logger";
 
 const schema = z.object({
@@ -23,7 +23,7 @@ export function ProfileForm() {
   const [username, setUsername] = useState("Loading...");
 
   useEffect(() => {
-    getProfileAction().then((result) => {
+    getProfileCommand().then((result) => {
       const error = result.userError || result.serverError;
 
       if (error) {
@@ -44,7 +44,7 @@ export function ProfileForm() {
       return;
     }
 
-    const result = await updateProfileAction(username);
+    const result = await updateProfileCommand(username);
 
     const error = result.userError || result.serverError;
 

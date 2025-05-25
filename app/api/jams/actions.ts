@@ -55,7 +55,7 @@ export async function createJamAction(
   if (!user) {
     redirect("/auth");
   }
-  
+
   if (!name || !description) {
     throw new Error("Name and description are required");
   }

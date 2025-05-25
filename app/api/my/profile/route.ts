@@ -2,11 +2,11 @@ import { NextRequest } from "next/server";
 import { ok, badRequest, internalServerError } from "@/app/api/apiResponse";
 import { withAuth, withErrorHandler } from "@/app/api/handlers";
 import { logger } from "@/lib/logger";
-import { getProfileAction, updateProfileAction } from "@/components/profile/actions";
+import { getProfileCommand, updateProfileCommand } from "@/app/api/my/profile/commands";
 
 export const GET = withErrorHandler(
   withAuth(async (request: NextRequest, { supabase }) => {
-    const result = await getProfileAction(supabase);
+    const result = await getProfileCommand(supabase);
 
     if (result?.userError) {
       return badRequest(result.userError.code, result.userError.message);
@@ -29,7 +29,7 @@ export const POST = withErrorHandler(
       return badRequest("username_is_required", "username not found in request body");
     }
 
-    const result = await updateProfileAction(username, supabase);
+    const result = await updateProfileCommand(username, supabase);
 
     if (result?.userError) {
       return badRequest(result.userError.code, result.userError.message);
