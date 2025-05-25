@@ -1,13 +1,13 @@
 import { redirectIfNotLoggedIn } from "@/components/auth/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getJamAction } from "@/app/(pages)/jams/actions";
+import { getJamCommand } from "@/app/api/jams/commands";
 
 export default async function Page({ params }: { params: { id: string } }) {
   await redirectIfNotLoggedIn();
 
   const { id } = await params;
 
-  const jam = await getJamAction(id);
+  const jam = await getJamCommand(id);
 
   if (!jam) {
     return (
@@ -23,7 +23,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   return (
     <div className="container max-w-2xl mx-auto py-10">
-      <Card key={jam.human_readable_id} data-id={jam.human_readable_id} role="listitem" data-testid="jam-card">
+      <Card key={jam.id} data-id={jam.id} role="listitem" data-testid="jam-card">
         <CardHeader>
           <CardTitle>
             <span data-testid="jam-name">Name: {jam.name}</span>
@@ -31,7 +31,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         </CardHeader>
         <CardContent>
           <p className="mb-2">
-            <span data-testid="jam-id">ID: {jam.human_readable_id}</span>
+            <span data-testid="jam-id">ID: {jam.id}</span>
           </p>
           <p className="mb-2">
             <span data-testid="jam-description">Description: {jam.description}</span>

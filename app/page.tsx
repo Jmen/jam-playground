@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/clients/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getJamsAction } from "@/app/(pages)/jams/actions";
+import { getJamsCommand } from "@/app/api/jams/commands";
 
 export default async function Page() {
   const supabase = await createClient();
@@ -10,7 +10,7 @@ export default async function Page() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const jams = await getJamsAction();
+  const jams = await getJamsCommand();
 
   return (
     <div className="container mx-auto py-8">
@@ -35,7 +35,7 @@ export default async function Page() {
                 </CardHeader>
                 <CardContent>
                   <p className="mb-2">
-                    <span data-testid="jam-id">ID: {jam.human_readable_id}</span>
+                    <span data-testid="jam-id">ID: {jam.id}</span>
                   </p>
                   <p className="mb-2">
                     <span data-testid="jam-description">Description: {jam.description}</span>

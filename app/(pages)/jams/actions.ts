@@ -1,36 +1,8 @@
 "use server";
 
+import { createJamCommand } from "@/app/api/jams/commands";
 import { createClient } from "@/lib/supabase/clients/server";
 import { redirect } from "next/navigation";
-import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
-
-export async function getJamsAction() {
-  const supabase = await createClient();
-
-  const { data: jams, error } = await supabase
-    .from("jams")
-    .select("*")
-    .eq("deleted", false)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return jams || [];
-}
-
-export async function getJamAction(id: string) {
-  const supabase = await createClient();
-
-  const { data: jams, error } = await supabase.from("jams").select("*").eq("human_readable_id", id).limit(1);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return jams?.length > 0 ? jams[0] : undefined;
-}
 
 export async function createJamAction(formData: FormData) {
   const supabase = await createClient();
@@ -50,29 +22,7 @@ export async function createJamAction(formData: FormData) {
     throw new Error("Name and description are required");
   }
 
-  const humanReadableId: string = uniqueNamesGenerator({
-    dictionaries: [adjectives, adjectives, colors, animals],
-    separator: "_",
-  });
+  const result = await createJamCommand({ name, description }, supabase);
 
-  const { data, error } = await supabase
-    .from("jams")
-    .insert({
-      human_readable_id: humanReadableId,
-      name,
-      description,
-      owner_id: user.id,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!data) {
-    throw new Error("Failed to create jam");
-  }
-
-  redirect(`/jams/${data.human_readable_id}`);
+  redirect(`/jams/${result.data.id}`);
 }

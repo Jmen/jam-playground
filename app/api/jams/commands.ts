@@ -5,7 +5,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
-export async function getJamsAction(supabase?: SupabaseClient) {
+export async function getJamsCommand(supabase?: SupabaseClient) {
   if (!supabase) {
     supabase = await createClient();
   }
@@ -24,11 +24,12 @@ export async function getJamsAction(supabase?: SupabaseClient) {
       id: jam.human_readable_id,
       name: jam.name,
       description: jam.description,
+      created_at: jam.created_at,
     })) || []
   );
 }
 
-export async function getJamAction(id: string) {
+export async function getJamCommand(id: string) {
   const supabase = await createClient();
 
   const { data: jams, error } = await supabase.from("jams").select("*").eq("human_readable_id", id).limit(1);
@@ -37,10 +38,19 @@ export async function getJamAction(id: string) {
     throw new Error(error.message);
   }
 
-  return jams?.length > 0 ? jams[0] : undefined;
+  if (jams?.length > 0) {
+    return {
+      id: jams[0].human_readable_id,
+      name: jams[0].name,
+      description: jams[0].description,
+      created_at: jams[0].created_at,
+    };
+  }
+
+  return undefined;
 }
 
-export async function createJamAction(
+export async function createJamCommand(
   { name, description }: { name: string; description: string },
   supabase?: SupabaseClient,
 ) {
@@ -84,5 +94,7 @@ export async function createJamAction(
     throw new Error("Failed to create jam");
   }
 
-  return { data: { id: data.human_readable_id, name: data.name, description: data.description } };
+  return {
+    data: { id: data.human_readable_id, name: data.name, description: data.description, created_at: data.created_at },
+  };
 }
