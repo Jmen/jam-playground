@@ -1,18 +1,18 @@
 import { resetPasswordAction } from "@/components/auth/actions";
 import { NextRequest } from "next/server";
 import { badRequest, ok } from "@/app/api/apiResponse";
-import { withErrorHandler, withAuth } from "@/app/api/wrappers";
+import { ApiHandlerBuilder, Context } from "@/app/api/apiHandlerBuilder";
 
-export const POST = withErrorHandler(
-  withAuth(async (request: NextRequest, { supabase }) => {
-    const { password } = await request.json();
+export const POST = new ApiHandlerBuilder().auth().build(async (request: NextRequest, context?: Context) => {
+  const supabase = context?.supabase;
 
-    const result = await resetPasswordAction(password, supabase);
+  const { password } = await request.json();
 
-    if (result?.error) {
-      return badRequest(result.error.code, result.error.message);
-    }
+  const result = await resetPasswordAction(password, supabase);
 
-    return ok();
-  }),
-);
+  if (result?.error) {
+    return badRequest(result.error.code, result.error.message);
+  }
+
+  return ok();
+});

@@ -1,44 +1,44 @@
 import { NextRequest } from "next/server";
-import { withAuth, withErrorHandler } from "../wrappers";
 import { createJamCommand, getJamsCommand } from "./commands";
 import { badRequest, internalServerError, ok } from "../apiResponse";
 import { logger } from "@/lib/logger";
 import { isServerError, isUserError } from "../result";
+import { ApiHandlerBuilder, Context } from "../apiHandlerBuilder";
 
-export const GET = withErrorHandler(
-  withAuth(async (_: NextRequest, { supabase }) => {
-    const result = await getJamsCommand(supabase);
+export const GET = new ApiHandlerBuilder().auth().build(async (_: NextRequest, context?: Context) => {
+  const supabase = context?.supabase;
 
-    if (isServerError(result)) {
-      logger.error({ error: result.error }, "Failed to get jams");
-      return internalServerError();
-    }
+  const result = await getJamsCommand(supabase);
 
-    if (isUserError(result)) {
-      logger.error({ error: result.error }, "Failed to get jams");
-      return badRequest(result.error.message);
-    }
+  if (isServerError(result)) {
+    logger.error({ error: result.error }, "Failed to get jams");
+    return internalServerError();
+  }
 
-    return ok(result.data);
-  }),
-);
+  if (isUserError(result)) {
+    logger.error({ error: result.error }, "Failed to get jams");
+    return badRequest(result.error.message);
+  }
 
-export const POST = withErrorHandler(
-  withAuth(async (request: NextRequest, { supabase }) => {
-    const json = await request.json();
+  return ok(result.data);
+});
 
-    const result = await createJamCommand(json, supabase);
+export const POST = new ApiHandlerBuilder().auth().build(async (request: NextRequest, context?: Context) => {
+  const supabase = context?.supabase;
 
-    if (isUserError(result)) {
-      logger.error({ error: result.error, body: json }, "Failed to create jam");
-      return badRequest(result.error.message);
-    }
+  const json = await request.json();
 
-    if (isServerError(result)) {
-      logger.error({ error: result.error, body: json }, "Failed to create jam");
-      return internalServerError();
-    }
+  const result = await createJamCommand(json, supabase);
 
-    return ok(result.data);
-  }),
-);
+  if (isUserError(result)) {
+    logger.error({ error: result.error, body: json }, "Failed to create jam");
+    return badRequest(result.error.message);
+  }
+
+  if (isServerError(result)) {
+    logger.error({ error: result.error, body: json }, "Failed to create jam");
+    return internalServerError();
+  }
+
+  return ok(result.data);
+});

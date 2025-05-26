@@ -1,9 +1,9 @@
 import { signUpAction } from "@/components/auth/actions";
 import { badRequest, internalServerError, ok } from "../../apiResponse";
-import { withErrorHandler } from "../../wrappers";
 import { logger } from "@/lib/logger";
+import { ApiHandlerBuilder } from "../../apiHandlerBuilder";
 
-export const POST = withErrorHandler(async (request: Request) => {
+export const POST = new ApiHandlerBuilder().build(async (request: Request) => {
   const { email, password } = await request.json();
 
   const result = await signUpAction(email, password);

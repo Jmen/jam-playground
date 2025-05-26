@@ -1,16 +1,16 @@
 import { signOutAction } from "@/components/auth/actions";
 import { ok, badRequest } from "../../apiResponse";
-import { withAuth, withErrorHandler } from "../../wrappers";
 import { NextRequest } from "next/server";
+import { ApiHandlerBuilder, Context } from "../../apiHandlerBuilder";
 
-export const POST = withErrorHandler(
-  withAuth(async (_: NextRequest, { supabase }) => {
-    const result = await signOutAction(supabase);
+export const POST = new ApiHandlerBuilder().auth().build(async (_: NextRequest, context?: Context) => {
+  const supabase = context?.supabase;
 
-    if (result?.error) {
-      return badRequest(result.error.code, result.error.message);
-    }
+  const result = await signOutAction(supabase);
 
-    return ok({ success: true });
-  }),
-);
+  if (result?.error) {
+    return badRequest(result.error.code, result.error.message);
+  }
+
+  return ok({ success: true });
+});

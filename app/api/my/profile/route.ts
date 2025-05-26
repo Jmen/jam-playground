@@ -1,48 +1,48 @@
 import { NextRequest } from "next/server";
 import { ok, badRequest, internalServerError } from "@/app/api/apiResponse";
-import { withAuth, withErrorHandler } from "@/app/api/wrappers";
+import { ApiHandlerBuilder, Context } from "@/app/api/apiHandlerBuilder";
 import { logger } from "@/lib/logger";
 import { getProfileCommand, updateProfileCommand } from "@/app/api/my/profile/commands";
 import { isServerError, isUserError } from "../../result";
 
-export const GET = withErrorHandler(
-  withAuth(async (_request: NextRequest, { supabase }) => {
-    const result = await getProfileCommand(supabase);
+export const GET = new ApiHandlerBuilder().auth().build(async (_request: NextRequest, context?: Context) => {
+  const supabase = context?.supabase;
 
-    if (isUserError(result)) {
-      logger.error({ error: result.error }, "Failed to get profile");
-      return badRequest(result.error.code, result.error.message);
-    }
+  const result = await getProfileCommand(supabase);
 
-    if (isServerError(result)) {
-      logger.error({ error: result.error }, "Failed to get profile");
-      return internalServerError();
-    }
+  if (isUserError(result)) {
+    logger.error({ error: result.error }, "Failed to get profile");
+    return badRequest(result.error.code, result.error.message);
+  }
 
-    return ok(result.data);
-  }),
-);
+  if (isServerError(result)) {
+    logger.error({ error: result.error }, "Failed to get profile");
+    return internalServerError();
+  }
 
-export const POST = withErrorHandler(
-  withAuth(async (request: NextRequest, { supabase }) => {
-    const { username } = await request.json();
+  return ok(result.data);
+});
 
-    if (!username) {
-      return badRequest("username_is_required", "username not found in request body");
-    }
+export const POST = new ApiHandlerBuilder().auth().build(async (request: NextRequest, context?: Context) => {
+  const supabase = context?.supabase;
 
-    const result = await updateProfileCommand(username, supabase);
+  const { username } = await request.json();
 
-    if (isUserError(result)) {
-      logger.error({ error: result.error }, "Failed to update profile");
-      return badRequest(result.error.code, result.error.message);
-    }
+  if (!username) {
+    return badRequest("username_is_required", "username not found in request body");
+  }
 
-    if (isServerError(result)) {
-      logger.error({ error: result.error }, "Failed to update profile");
-      return internalServerError();
-    }
+  const result = await updateProfileCommand(username, supabase);
 
-    return ok({ username: result.data.username });
-  }),
-);
+  if (isUserError(result)) {
+    logger.error({ error: result.error }, "Failed to update profile");
+    return badRequest(result.error.code, result.error.message);
+  }
+
+  if (isServerError(result)) {
+    logger.error({ error: result.error }, "Failed to update profile");
+    return internalServerError();
+  }
+
+  return ok({ username: result.data.username });
+});
