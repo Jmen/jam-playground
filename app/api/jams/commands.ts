@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
@@ -16,6 +17,7 @@ export async function getJamsCommand(supabase?: SupabaseClient) {
     .order("created_at", { ascending: false });
 
   if (error) {
+    logger.error({ error }, "Failed to get jams");
     return {
       serverError: { code: "internal_server_error", message: "Failed to get jams" },
     };
@@ -38,6 +40,7 @@ export async function getJamCommand(id: string) {
   const { data: jams, error } = await supabase.from("jams").select("*").eq("human_readable_id", id).limit(1);
 
   if (error) {
+    logger.error({ error }, "Failed to get jam");
     return {
       serverError: { code: "internal_server_error", message: "Failed to get jam" },
     };
@@ -53,6 +56,8 @@ export async function getJamCommand(id: string) {
       },
     };
   }
+
+  logger.warn({ id }, "Jam not found");
 
   return {
     userError: { code: "not_found", message: "Jam not found" },
@@ -76,12 +81,14 @@ export async function createJamCommand(
   }
 
   if (!name) {
+    logger.warn({ name }, "Name is required");
     return {
       userError: { code: "name_required", message: "Name is required" },
     };
   }
 
   if (!description) {
+    logger.warn({ description }, "Description is required");
     return {
       userError: { code: "description_required", message: "Description is required" },
     };
@@ -90,6 +97,7 @@ export async function createJamCommand(
   const idResult = await generateUniqueJamId(supabase);
 
   if ("serverError" in idResult) {
+    logger.error({ error: idResult.serverError, name, description, user }, "Failed to generate unique jam ID");
     return idResult;
   }
 
@@ -107,6 +115,7 @@ export async function createJamCommand(
     .single();
 
   if (error || !data) {
+    logger.error({ error, data, humanReadableId, name, description, user }, "Failed to create jam");
     return {
       serverError: { code: "internal_server_error", message: "Failed to create jam" },
     };
@@ -135,6 +144,7 @@ async function generateUniqueJamId(
       .limit(1);
 
     if (error) {
+      logger.error({ error, candidateId }, "Failed to check ID uniqueness");
       return {
         serverError: { code: "internal_server_error", message: "Failed to check ID uniqueness" },
       };
@@ -144,6 +154,8 @@ async function generateUniqueJamId(
       return { data: candidateId };
     }
   }
+
+  logger.error({ maxAttempts }, "Failed to generate unique ID");
 
   return {
     serverError: { code: "internal_server_error", message: "Failed to generate unique ID" },

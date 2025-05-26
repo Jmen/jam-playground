@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 
@@ -12,6 +13,7 @@ export const getProfileCommand = async (supabase?: SupabaseClient) => {
   } = await supabaseClient.auth.getUser();
 
   if (userError || !user) {
+    logger.warn({ error: userError, user }, "user not found");
     return { userError: { code: "unauthorized", message: "user not found" } };
   }
 
@@ -22,6 +24,7 @@ export const getProfileCommand = async (supabase?: SupabaseClient) => {
     .limit(1);
 
   if (profileError) {
+    logger.error({ error: profileError, user }, "profile not found");
     return { serverError: { code: profileError.code, message: profileError.message } };
   }
 
@@ -41,6 +44,7 @@ export const updateProfileCommand = async (username: string, supabase?: Supabase
   } = await supabaseClient.auth.getUser();
 
   if (userError || !user) {
+    logger.warn({ error: userError, user, username }, "user not found");
     return { userError: { code: "unauthorized", message: "user not found" } };
   }
 
@@ -51,6 +55,7 @@ export const updateProfileCommand = async (username: string, supabase?: Supabase
     .single();
 
   if (error) {
+    logger.error({ error, user, username }, "error updating profile");
     return { serverError: { code: error.code, message: error.message } };
   }
 
