@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ok, badRequest, internalServerError } from "@/app/api/apiResponse";
-import { withAuth, withErrorHandler } from "@/app/api/handlers";
+import { withAuth, withErrorHandler } from "@/app/api/wrappers";
 import { logger } from "@/lib/logger";
 import { getProfileCommand, updateProfileCommand } from "@/app/api/my/profile/commands";
 import { isServerError, isUserError } from "../../result";

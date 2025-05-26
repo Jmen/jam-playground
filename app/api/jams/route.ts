@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { withAuth, withErrorHandler } from "../handlers";
+import { withAuth, withErrorHandler } from "../wrappers";
 import { createJamCommand, getJamsCommand } from "./commands";
 import { badRequest, internalServerError, ok } from "../apiResponse";
 import { logger } from "@/lib/logger";

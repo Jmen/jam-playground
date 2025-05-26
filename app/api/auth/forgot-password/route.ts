@@ -1,6 +1,6 @@
 import { forgotPasswordAction } from "@/components/auth/actions";
 import { badRequest, ok } from "../../apiResponse";
-import { withErrorHandler } from "../../handlers";
+import { withErrorHandler } from "../../wrappers";
 
 export const POST = withErrorHandler(async (request: Request) => {
   const { email } = await request.json();

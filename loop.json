@@ -1,0 +1,23 @@
+{
+    "bpm": "174",
+    "key": "C",
+    "scale": "major",
+    "mode": "ionian",
+    "time_signature": "4/4",
+    "layers": [
+        {
+            "id": "1",
+            "url": "https://api.loop.com/v1/layers",
+            "volume": 0.5,
+            "muted": false,
+            "solo": false
+        },
+        {
+            "id": "2",
+            "url": "https://api.loop.com/v1/layers/1/jams",
+            "volume": 0.5,
+            "muted": false,
+            "solo": false
+        }
+    ]
+}

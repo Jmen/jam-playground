@@ -1,6 +1,6 @@
 import { signInAction } from "@/components/auth/actions";
 import { ok, badRequest, internalServerError } from "../../apiResponse";
-import { withErrorHandler } from "../../handlers";
+import { withErrorHandler } from "../../wrappers";
 import { logger } from "@/lib/logger";
 
 export const POST = withErrorHandler(async (request: Request) => {

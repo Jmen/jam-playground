@@ -1,6 +1,6 @@
 import { signOutAction } from "@/components/auth/actions";
 import { ok, badRequest } from "../../apiResponse";
-import { withAuth, withErrorHandler } from "../../handlers";
+import { withAuth, withErrorHandler } from "../../wrappers";
 import { NextRequest } from "next/server";
 
 export const POST = withErrorHandler(

@@ -1,7 +1,7 @@
 import { resetPasswordAction } from "@/components/auth/actions";
 import { NextRequest } from "next/server";
 import { badRequest, ok } from "@/app/api/apiResponse";
-import { withErrorHandler, withAuth } from "@/app/api/handlers";
+import { withErrorHandler, withAuth } from "@/app/api/wrappers";
 
 export const POST = withErrorHandler(
   withAuth(async (request: NextRequest, { supabase }) => {
