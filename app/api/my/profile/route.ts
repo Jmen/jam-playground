@@ -3,17 +3,19 @@ import { ok, badRequest, internalServerError } from "@/app/api/apiResponse";
 import { withAuth, withErrorHandler } from "@/app/api/handlers";
 import { logger } from "@/lib/logger";
 import { getProfileCommand, updateProfileCommand } from "@/app/api/my/profile/commands";
+import { isServerError, isUserError } from "../../result";
 
 export const GET = withErrorHandler(
-  withAuth(async (request: NextRequest, { supabase }) => {
+  withAuth(async (_request: NextRequest, { supabase }) => {
     const result = await getProfileCommand(supabase);
 
-    if (result?.userError) {
-      return badRequest(result.userError.code, result.userError.message);
+    if (isUserError(result)) {
+      logger.error({ error: result.error }, "Failed to get profile");
+      return badRequest(result.error.code, result.error.message);
     }
 
-    if (result?.serverError) {
-      logger.error({ error: result.serverError }, "Failed to get profile");
+    if (isServerError(result)) {
+      logger.error({ error: result.error }, "Failed to get profile");
       return internalServerError();
     }
 
@@ -31,12 +33,13 @@ export const POST = withErrorHandler(
 
     const result = await updateProfileCommand(username, supabase);
 
-    if (result?.userError) {
-      return badRequest(result.userError.code, result.userError.message);
+    if (isUserError(result)) {
+      logger.error({ error: result.error }, "Failed to update profile");
+      return badRequest(result.error.code, result.error.message);
     }
 
-    if (result?.serverError) {
-      logger.error({ error: result.serverError }, "Failed to update profile");
+    if (isServerError(result)) {
+      logger.error({ error: result.error }, "Failed to update profile");
       return internalServerError();
     }
 

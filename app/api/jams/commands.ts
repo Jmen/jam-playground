@@ -5,8 +5,11 @@ import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
+import { ErrorCode, isError, Result } from "../result";
 
-export async function getJamsCommand(supabase?: SupabaseClient) {
+export async function getJamsCommand(
+  supabase?: SupabaseClient,
+): Promise<Result<{ id: string; name: string; description: string; created_at: string }[]>> {
   if (!supabase) {
     supabase = await createClient();
   }
@@ -19,7 +22,7 @@ export async function getJamsCommand(supabase?: SupabaseClient) {
   if (error) {
     logger.error({ error }, "Failed to get jams");
     return {
-      serverError: { code: "internal_server_error", message: "Failed to get jams" },
+      error: { code: "internal_server_error", message: "Failed to get jams", type: ErrorCode.SERVER_ERROR },
     };
   }
 
@@ -34,7 +37,9 @@ export async function getJamsCommand(supabase?: SupabaseClient) {
   };
 }
 
-export async function getJamCommand(id: string) {
+export async function getJamCommand(
+  id: string,
+): Promise<Result<{ id: string; name: string; description: string; created_at: string }>> {
   const supabase = await createClient();
 
   const { data: jams, error } = await supabase.from("jams").select("*").eq("human_readable_id", id).limit(1);
@@ -42,7 +47,7 @@ export async function getJamCommand(id: string) {
   if (error) {
     logger.error({ error }, "Failed to get jam");
     return {
-      serverError: { code: "internal_server_error", message: "Failed to get jam" },
+      error: { code: "internal_server_error", message: "Failed to get jam", type: ErrorCode.SERVER_ERROR },
     };
   }
 
@@ -60,14 +65,14 @@ export async function getJamCommand(id: string) {
   logger.warn({ id }, "Jam not found");
 
   return {
-    userError: { code: "not_found", message: "Jam not found" },
+    error: { code: "not_found", message: "Jam not found", type: ErrorCode.USER_ERROR },
   };
 }
 
 export async function createJamCommand(
   { name, description }: { name: string; description: string },
   supabase?: SupabaseClient,
-) {
+): Promise<Result<{ id: string; name: string; description: string; created_at: string }>> {
   if (!supabase) {
     supabase = await createClient();
   }
@@ -83,21 +88,21 @@ export async function createJamCommand(
   if (!name) {
     logger.warn({ name }, "Name is required");
     return {
-      userError: { code: "name_required", message: "Name is required" },
+      error: { code: "name_required", message: "Name is required", type: ErrorCode.USER_ERROR },
     };
   }
 
   if (!description) {
     logger.warn({ description }, "Description is required");
     return {
-      userError: { code: "description_required", message: "Description is required" },
+      error: { code: "description_required", message: "Description is required", type: ErrorCode.USER_ERROR },
     };
   }
 
   const idResult = await generateUniqueJamId(supabase);
 
-  if ("serverError" in idResult) {
-    logger.error({ error: idResult.serverError, name, description, user }, "Failed to generate unique jam ID");
+  if (isError(idResult)) {
+    logger.error({ error: idResult.error, name, description, user }, "Failed to generate unique jam ID");
     return idResult;
   }
 
@@ -117,7 +122,7 @@ export async function createJamCommand(
   if (error || !data) {
     logger.error({ error, data, humanReadableId, name, description, user }, "Failed to create jam");
     return {
-      serverError: { code: "internal_server_error", message: "Failed to create jam" },
+      error: { code: "internal_server_error", message: "Failed to create jam", type: ErrorCode.SERVER_ERROR },
     };
   }
 
@@ -126,9 +131,7 @@ export async function createJamCommand(
   };
 }
 
-async function generateUniqueJamId(
-  supabase: SupabaseClient,
-): Promise<{ data: string } | { serverError: { code: string; message: string } }> {
+async function generateUniqueJamId(supabase: SupabaseClient): Promise<Result<string>> {
   const maxAttempts = 10;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -146,7 +149,11 @@ async function generateUniqueJamId(
     if (error) {
       logger.error({ error, candidateId }, "Failed to check ID uniqueness");
       return {
-        serverError: { code: "internal_server_error", message: "Failed to check ID uniqueness" },
+        error: {
+          code: "internal_server_error",
+          message: "Failed to check ID uniqueness",
+          type: ErrorCode.SERVER_ERROR,
+        },
       };
     }
 
@@ -158,6 +165,6 @@ async function generateUniqueJamId(
   logger.error({ maxAttempts }, "Failed to generate unique ID");
 
   return {
-    serverError: { code: "internal_server_error", message: "Failed to generate unique ID" },
+    error: { code: "internal_server_error", message: "Failed to generate unique ID", type: ErrorCode.SERVER_ERROR },
   };
 }

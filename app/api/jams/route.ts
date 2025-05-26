@@ -1,16 +1,22 @@
 import { NextRequest } from "next/server";
 import { withAuth, withErrorHandler } from "../handlers";
 import { createJamCommand, getJamsCommand } from "./commands";
-import { internalServerError, ok } from "../apiResponse";
+import { badRequest, internalServerError, ok } from "../apiResponse";
 import { logger } from "@/lib/logger";
+import { isServerError, isUserError } from "../result";
 
 export const GET = withErrorHandler(
   withAuth(async (_: NextRequest, { supabase }) => {
     const result = await getJamsCommand(supabase);
 
-    if ("serverError" in result) {
-      logger.error({ error: result.serverError }, "Failed to get jams");
+    if (isServerError(result)) {
+      logger.error({ error: result.error }, "Failed to get jams");
       return internalServerError();
+    }
+
+    if (isUserError(result)) {
+      logger.error({ error: result.error }, "Failed to get jams");
+      return badRequest(result.error.message);
     }
 
     return ok(result.data);
@@ -23,8 +29,13 @@ export const POST = withErrorHandler(
 
     const result = await createJamCommand(json, supabase);
 
-    if ("serverError" in result) {
-      logger.error({ error: result.serverError, body: json }, "Failed to create jam");
+    if (isUserError(result)) {
+      logger.error({ error: result.error, body: json }, "Failed to create jam");
+      return badRequest(result.error.message);
+    }
+
+    if (isServerError(result)) {
+      logger.error({ error: result.error, body: json }, "Failed to create jam");
       return internalServerError();
     }
 
