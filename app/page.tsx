@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/clients/server";
 import { Button } from "@/components/ui/button";
 import { getJamsCommand } from "@/app/api/jams/commands";
 import { JamCard } from "@/components/JamCard";
+import { isError } from "./api/result";
 
 export default async function Page() {
   const supabase = await createClient();
@@ -12,8 +13,8 @@ export default async function Page() {
 
   const jams = await getJamsCommand();
 
-  if (jams.serverError) {
-    return <div>Error: {jams.serverError.message}</div>;
+  if (isError(jams)) {
+    return <div>Error: {jams.error.message}</div>;
   }
 
   return (
@@ -37,7 +38,9 @@ export default async function Page() {
         </div>
       ) : (
         <div className="text-center py-10">
-          <p className="text-lg text-gray-500">No jams yet. {user && "Create your first jam!"}</p>
+          <p className="text-lg text-gray-500">
+            No jams yet. {user && "Create your first jam!"}
+          </p>
         </div>
       )}
     </div>

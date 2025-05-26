@@ -17,7 +17,11 @@ export class User {
     return `test-${Date.now()}-${Math.random().toString(36).substring(2)}@example.com`;
   }
 
-  static async register(driver: ITestDriver, email = User.uniqueEmail(), password = "password123"): Promise<User> {
+  static async register(
+    driver: ITestDriver,
+    email = User.uniqueEmail(),
+    password = "password123",
+  ): Promise<User> {
     const context = await driver.auth.register(email, password);
     return new User(driver, context, email, password);
   }

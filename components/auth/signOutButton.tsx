@@ -12,7 +12,12 @@ export function SignOutButton({ variant, size, ...props }: ButtonProps) {
   }
 
   return (
-    <DebouncedButton onDebouncedClick={onClick} variant={variant} size={size} {...props}>
+    <DebouncedButton
+      onDebouncedClick={onClick}
+      variant={variant}
+      size={size}
+      {...props}
+    >
       Sign out
     </DebouncedButton>
   );

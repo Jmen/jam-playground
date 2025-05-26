@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DebouncedButton } from "../debouncedButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getProfileCommand, updateProfileCommand } from "@/app/api/my/profile/commands";
+import {
+  getProfileCommand,
+  updateProfileCommand,
+} from "@/app/api/my/profile/commands";
 import { logger } from "@/lib/logger";
 
 const schema = z.object({
@@ -70,14 +73,21 @@ export function ProfileForm() {
         <form onSubmit={onSubmit} className="space-y-8">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
-            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={isLoading} />
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading}
+            />
           </div>
           <div className="flex items-center gap-4">
             <DebouncedButton type="submit" onDebouncedClick={onSubmit}>
               Update Profile
             </DebouncedButton>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            {success && <p className="text-green-500 text-sm">Profile updated</p>}
+            {success && (
+              <p className="text-green-500 text-sm">Profile updated</p>
+            )}
           </div>
         </form>
       </CardContent>

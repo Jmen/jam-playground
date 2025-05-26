@@ -29,7 +29,10 @@ export const ok = function <T>(data?: T) {
   return NextResponse.json(ApiResponseBuilder.success(data));
 };
 
-export const badRequest = function (code: string = "bad_request", message: string = "Bad request") {
+export const badRequest = function (
+  code: string = "bad_request",
+  message: string = "Bad request",
+) {
   return NextResponse.json(ApiResponseBuilder.error(code, message), {
     status: 400,
   });
@@ -42,5 +45,8 @@ export const unauthorised = function (error: string = "Unauthorised") {
 };
 
 export const internalServerError = function () {
-  return NextResponse.json(ApiResponseBuilder.error("internal_server_error", "Internal server error"), { status: 500 });
+  return NextResponse.json(
+    ApiResponseBuilder.error("internal_server_error", "Internal server error"),
+    { status: 500 },
+  );
 };

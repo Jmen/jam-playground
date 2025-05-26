@@ -19,7 +19,10 @@ export interface ITestDriver {
     resetPassword(context: Context, newPassword: string): Promise<void>;
   };
   user: {
-    setMyProfile(context: Context, profile: { username: string }): Promise<void>;
+    setMyProfile(
+      context: Context,
+      profile: { username: string },
+    ): Promise<void>;
     getMyProfile(context: Context): Promise<{ username: string }>;
   };
   jams: {

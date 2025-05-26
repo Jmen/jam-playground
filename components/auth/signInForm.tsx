@@ -3,9 +3,19 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signInAction, getAuthProvidersAction } from "@/components/auth/actions";
+import {
+  signInAction,
+  getAuthProvidersAction,
+} from "@/components/auth/actions";
 import { useState, useEffect } from "react";
 import { DebouncedButton } from "../debouncedButton";
 import { useRouter } from "next/navigation";
@@ -92,7 +102,10 @@ export function SignInForm() {
               )}
             />
             <div className="flex items-center gap-4">
-              <DebouncedButton type="submit" onDebouncedClick={form.handleSubmit(onSubmit)}>
+              <DebouncedButton
+                type="submit"
+                onDebouncedClick={form.handleSubmit(onSubmit)}
+              >
                 Sign In
               </DebouncedButton>
               {error && <p className="text-red-500 text-sm">{error}</p>}

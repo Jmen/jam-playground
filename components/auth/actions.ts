@@ -75,7 +75,10 @@ export const signOutAction = async (supabase?: SupabaseClient) => {
   return { success: true };
 };
 
-export const resetPasswordAction = async (newPassword: string, supabase?: SupabaseClient) => {
+export const resetPasswordAction = async (
+  newPassword: string,
+  supabase?: SupabaseClient,
+) => {
   const supabaseClient = supabase || (await createClient());
 
   const { error } = await supabaseClient.auth.updateUser({

@@ -29,7 +29,13 @@ export function GoogleSignIn({ onError }: GoogleSignInProps) {
   }
 
   return (
-    <Button type="button" variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full"
+      onClick={handleGoogleSignIn}
+      disabled={isLoading}
+    >
       <GoogleIcon />
       {isLoading ? "Connecting..." : "Google"}
     </Button>

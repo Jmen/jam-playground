@@ -6,13 +6,21 @@ import { Handler } from "../apiHandlerBuilder";
 
 export function withAuth(handler: Handler) {
   return async (req: NextRequest) => {
-    const { accessToken, refreshToken, error: tokenError } = await getTokens(req);
+    const {
+      accessToken,
+      refreshToken,
+      error: tokenError,
+    } = await getTokens(req);
 
     if (tokenError || !accessToken || !refreshToken) {
       return unauthorised(tokenError);
     }
 
-    const { userId, client: supabase, error: userError } = await getUserId(accessToken, refreshToken);
+    const {
+      userId,
+      client: supabase,
+      error: userError,
+    } = await getUserId(accessToken, refreshToken);
 
     if (userError) {
       logger.error({ userError }, "Invalid token");

@@ -35,7 +35,11 @@ test.describe("Authentication", () => {
     const initialPassword = "initial-password";
     const updatedPassword = "updated-password";
 
-    const user = await User.register(createDriver(browser), email, initialPassword);
+    const user = await User.register(
+      createDriver(browser),
+      email,
+      initialPassword,
+    );
 
     await user.resetPassword(updatedPassword);
 

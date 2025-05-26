@@ -3,7 +3,14 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signUpAction } from "@/components/auth/actions";
 import { useState } from "react";
@@ -82,7 +89,10 @@ export function RegisterForm() {
                 </FormItem>
               )}
             />
-            <DebouncedButton type="submit" onDebouncedClick={form.handleSubmit(onSubmit)}>
+            <DebouncedButton
+              type="submit"
+              onDebouncedClick={form.handleSubmit(onSubmit)}
+            >
               Create Account
             </DebouncedButton>
           </form>

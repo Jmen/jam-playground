@@ -36,7 +36,13 @@ export function GoogleProfile({ user }: Props) {
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
-          <Image src={avatarUrl} alt="Profile" width={48} height={48} className="rounded-full" />
+          <Image
+            src={avatarUrl}
+            alt="Profile"
+            width={48}
+            height={48}
+            className="rounded-full"
+          />
           <p className="font-medium">{name}</p>
         </div>
       </CardContent>

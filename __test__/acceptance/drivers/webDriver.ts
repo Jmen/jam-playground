@@ -53,7 +53,10 @@ export class PlaywrightWebDriver implements ITestDriver {
         return { page };
       });
     },
-    signInIsUnauthorized: async (email: string, password: string): Promise<void> => {
+    signInIsUnauthorized: async (
+      email: string,
+      password: string,
+    ): Promise<void> => {
       await test.step("Sign In is Unauthorized", async () => {
         const context = await this.browser.newContext();
         const page = await context.newPage();
@@ -85,7 +88,10 @@ export class PlaywrightWebDriver implements ITestDriver {
         await page.waitForLoadState("networkidle");
       });
     },
-    resetPassword: async (context: WebContext, newPassword: string): Promise<void> => {
+    resetPassword: async (
+      context: WebContext,
+      newPassword: string,
+    ): Promise<void> => {
       await test.step("Reset Password", async () => {
         const { page } = context;
         await page.goto("/account");
@@ -99,7 +105,10 @@ export class PlaywrightWebDriver implements ITestDriver {
   };
 
   user = {
-    setMyProfile: async (context: WebContext, profile: { username: string }): Promise<void> => {
+    setMyProfile: async (
+      context: WebContext,
+      profile: { username: string },
+    ): Promise<void> => {
       await test.step("Set My Profile", async () => {
         const { page } = context;
         await page.goto("/account");
@@ -109,7 +118,9 @@ export class PlaywrightWebDriver implements ITestDriver {
         await page.waitForLoadState("networkidle");
       });
     },
-    getMyProfile: async (context: WebContext): Promise<{ username: string }> => {
+    getMyProfile: async (
+      context: WebContext,
+    ): Promise<{ username: string }> => {
       return await test.step("Get My Profile", async () => {
         const { page } = context;
         await page.goto("/account");
@@ -127,7 +138,11 @@ export class PlaywrightWebDriver implements ITestDriver {
   };
 
   jams = {
-    create: async (context: WebContext, name: string, description: string): Promise<Jam> => {
+    create: async (
+      context: WebContext,
+      name: string,
+      description: string,
+    ): Promise<Jam> => {
       return await test.step("Create Jam", async () => {
         const { page } = context;
         await page.goto("/");
@@ -143,10 +158,18 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         await expect(page.locator('[data-testid="jam-card"]')).toBeVisible();
 
-        const jamId = (await page.locator('[data-testid="jam-id"]').textContent()) || "";
-        const nameText = (await page.locator('[data-testid="jam-name"]').textContent()) || "";
-        const descriptionText = (await page.locator('[data-testid="jam-description"]').textContent()) || "";
-        const createdAt = (await page.locator('[data-testid="jam-created-at"]').textContent()) || "";
+        const jamId =
+          (await page.locator('[data-testid="jam-id"]').textContent()) || "";
+        const nameText =
+          (await page.locator('[data-testid="jam-name"]').textContent()) || "";
+        const descriptionText =
+          (await page
+            .locator('[data-testid="jam-description"]')
+            .textContent()) || "";
+        const createdAt =
+          (await page
+            .locator('[data-testid="jam-created-at"]')
+            .textContent()) || "";
 
         return {
           id: jamId,
@@ -167,10 +190,21 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         const jamsData = await Promise.all(
           jamCards.map(async (jamCard) => {
-            const id = (await jamCard.locator('[data-testid="jam-id"]').textContent()) ?? "";
-            const nameText = (await jamCard.locator('[data-testid="jam-name"]').textContent()) ?? "";
-            const descriptionText = (await jamCard.locator('[data-testid="jam-description"]').textContent()) ?? "";
-            const createdAt = (await jamCard.locator('[data-testid="jam-created-at"]').textContent()) ?? "";
+            const id =
+              (await jamCard.locator('[data-testid="jam-id"]').textContent()) ??
+              "";
+            const nameText =
+              (await jamCard
+                .locator('[data-testid="jam-name"]')
+                .textContent()) ?? "";
+            const descriptionText =
+              (await jamCard
+                .locator('[data-testid="jam-description"]')
+                .textContent()) ?? "";
+            const createdAt =
+              (await jamCard
+                .locator('[data-testid="jam-created-at"]')
+                .textContent()) ?? "";
 
             return {
               id,
@@ -184,7 +218,10 @@ export class PlaywrightWebDriver implements ITestDriver {
         return jamsData;
       });
     },
-    get: async (context: WebContext, name: string): Promise<Jam | undefined> => {
+    get: async (
+      context: WebContext,
+      name: string,
+    ): Promise<Jam | undefined> => {
       return await test.step("Get Jam", async () => {
         const { page } = context;
 
@@ -199,7 +236,9 @@ export class PlaywrightWebDriver implements ITestDriver {
           url.includes("127.0.0.1");
 
         if (!isHomePage) {
-          throw new Error(`Test failed: Not redirected to home page. Current URL: ${url}`);
+          throw new Error(
+            `Test failed: Not redirected to home page. Current URL: ${url}`,
+          );
         }
 
         const jams = await this.jams.getAll(context);

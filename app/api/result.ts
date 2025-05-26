@@ -3,9 +3,12 @@ export enum ErrorCode {
   SERVER_ERROR = "server_error",
 }
 
-export type Result<T> = { data: T } | { error: { code: string; message: string; type: ErrorCode } };
+export type Result<T> =
+  | { data: T }
+  | { error: { code: string; message: string; type: ErrorCode } };
 
-export const isOk = <T>(result: Result<T>): result is { data: T } => "data" in result;
+export const isOk = <T>(result: Result<T>): result is { data: T } =>
+  "data" in result;
 
 export const isUserError = <T>(
   result: Result<T>,

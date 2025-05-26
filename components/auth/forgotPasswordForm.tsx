@@ -3,12 +3,25 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { DebouncedButton } from "../debouncedButton";
 import { forgotPasswordAction } from "@/components/auth/actions";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const formSchema = z.object({
   email: z
@@ -49,7 +62,8 @@ export function ForgotPasswordForm() {
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-green-600">
-              If an account exists for this email, you will receive password reset instructions.
+              If an account exists for this email, you will receive password
+              reset instructions.
             </p>
           </div>
         </CardContent>
@@ -62,7 +76,8 @@ export function ForgotPasswordForm() {
       <CardHeader>
         <CardTitle>Reset Password</CardTitle>
         <CardDescription>
-          Enter your email address and we&apos;ll send you a link to reset your password.
+          Enter your email address and we&apos;ll send you a link to reset your
+          password.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -81,7 +96,10 @@ export function ForgotPasswordForm() {
                 </FormItem>
               )}
             />
-            <DebouncedButton type="submit" onDebouncedClick={form.handleSubmit(onSubmit)}>
+            <DebouncedButton
+              type="submit"
+              onDebouncedClick={form.handleSubmit(onSubmit)}
+            >
               Send Reset Link
             </DebouncedButton>
           </form>

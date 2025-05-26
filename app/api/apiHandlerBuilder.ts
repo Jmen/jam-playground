@@ -13,7 +13,10 @@ export interface Context {
   supabase: SupabaseClient;
 }
 
-export type Handler = (req: NextRequest, context?: Context) => Promise<NextResponse>;
+export type Handler = (
+  req: NextRequest,
+  context?: Context,
+) => Promise<NextResponse>;
 
 export class ApiHandlerBuilder {
   private _withAuth = false;

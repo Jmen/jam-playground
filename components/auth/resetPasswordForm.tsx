@@ -3,7 +3,14 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { DebouncedButton } from "../debouncedButton";
@@ -77,8 +84,12 @@ export function ResetPasswordForm({ user }: { user: User | null }) {
         </CardHeader>
         <CardContent className="pt-6">
           <div className="text-center">
-            <p className="text-green-600">Your password has been successfully reset.</p>
-            <p className="text-sm text-muted-foreground mt-2">Redirecting you to sign in...</p>
+            <p className="text-green-600">
+              Your password has been successfully reset.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Redirecting you to sign in...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -119,7 +130,11 @@ export function ResetPasswordForm({ user }: { user: User | null }) {
                 </FormItem>
               )}
             />
-            <DebouncedButton type="submit" onDebouncedClick={form.handleSubmit(onSubmit)} disabled={!passwordsMatch}>
+            <DebouncedButton
+              type="submit"
+              onDebouncedClick={form.handleSubmit(onSubmit)}
+              disabled={!passwordsMatch}
+            >
               Reset Password
             </DebouncedButton>
           </form>

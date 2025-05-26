@@ -8,7 +8,11 @@ export interface ApiContext {
 export class ApiDriver implements ITestDriver {
   constructor(private readonly baseUrl: string) {}
 
-  async checkResponse(request: Request, response: Response, expectedStatusCode: number = 200): Promise<any> {
+  async checkResponse(
+    request: Request,
+    response: Response,
+    expectedStatusCode: number = 200,
+  ): Promise<any> {
     if (response.status !== expectedStatusCode) {
       console.error("REQUEST:");
       console.error(` method: ${request.method}`);
@@ -60,7 +64,10 @@ export class ApiDriver implements ITestDriver {
       };
     },
 
-    signInIsUnauthorized: async (email: string, password: string): Promise<void> => {
+    signInIsUnauthorized: async (
+      email: string,
+      password: string,
+    ): Promise<void> => {
       const request = new Request(`${this.baseUrl}/api/auth/sign-in`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,7 +93,10 @@ export class ApiDriver implements ITestDriver {
       await this.checkResponse(request, response);
     },
 
-    resetPassword: async (context: ApiContext, newPassword: string): Promise<void> => {
+    resetPassword: async (
+      context: ApiContext,
+      newPassword: string,
+    ): Promise<void> => {
       const request = new Request(`${this.baseUrl}/api/auth/reset-password`, {
         method: "POST",
         headers: {
@@ -104,7 +114,10 @@ export class ApiDriver implements ITestDriver {
   };
 
   user = {
-    setMyProfile: async (context: ApiContext, profile: { username: string }): Promise<void> => {
+    setMyProfile: async (
+      context: ApiContext,
+      profile: { username: string },
+    ): Promise<void> => {
       const request = new Request(`${this.baseUrl}/api/my/profile`, {
         method: "POST",
         headers: {
@@ -119,7 +132,9 @@ export class ApiDriver implements ITestDriver {
 
       await this.checkResponse(request, response);
     },
-    getMyProfile: async (context: ApiContext): Promise<{ username: string }> => {
+    getMyProfile: async (
+      context: ApiContext,
+    ): Promise<{ username: string }> => {
       const request = new Request(`${this.baseUrl}/api/my/profile`, {
         method: "GET",
         headers: {
@@ -137,7 +152,11 @@ export class ApiDriver implements ITestDriver {
   };
 
   jams = {
-    create: async (context: ApiContext, name: string, description: string): Promise<Jam> => {
+    create: async (
+      context: ApiContext,
+      name: string,
+      description: string,
+    ): Promise<Jam> => {
       const request = new Request(`${this.baseUrl}/api/jams`, {
         method: "POST",
         headers: {
@@ -169,7 +188,10 @@ export class ApiDriver implements ITestDriver {
 
       return body.data;
     },
-    get: async (context: ApiContext, name: string): Promise<Jam | undefined> => {
+    get: async (
+      context: ApiContext,
+      name: string,
+    ): Promise<Jam | undefined> => {
       throw new Error("Not implemented");
     },
   };

@@ -2,10 +2,14 @@ const isServer = typeof window === "undefined";
 
 // Simple console wrapper that maintains consistent interface
 const clientLogger = {
-  error: (obj: unknown, msg?: string) => console.error(msg || obj, typeof obj === "object" ? obj : undefined),
-  warn: (obj: unknown, msg?: string) => console.warn(msg || obj, typeof obj === "object" ? obj : undefined),
-  info: (obj: unknown, msg?: string) => console.info(msg || obj, typeof obj === "object" ? obj : undefined),
-  debug: (obj: unknown, msg?: string) => console.debug(msg || obj, typeof obj === "object" ? obj : undefined),
+  error: (obj: unknown, msg?: string) =>
+    console.error(msg || obj, typeof obj === "object" ? obj : undefined),
+  warn: (obj: unknown, msg?: string) =>
+    console.warn(msg || obj, typeof obj === "object" ? obj : undefined),
+  info: (obj: unknown, msg?: string) =>
+    console.info(msg || obj, typeof obj === "object" ? obj : undefined),
+  debug: (obj: unknown, msg?: string) =>
+    console.debug(msg || obj, typeof obj === "object" ? obj : undefined),
 };
 
 // Server-side only import to avoid bundling issues
