@@ -1,12 +1,10 @@
 import { NextRequest } from "next/server";
-import { ok, badRequest, internalServerError } from "@/app/api/apiResponse";
 import { ApiHandlerBuilder, Context } from "@/app/api/apiHandlerBuilder";
-import { logger } from "@/lib/logger";
 import {
   getProfileCommand,
   updateProfileCommand,
 } from "@/app/api/my/profile/commands";
-import { isServerError, isUserError } from "../../result";
+import { createResponse } from "../../result";
 import { updateProfileSchema } from "./schema";
 import { getTypedBody } from "../../wrappers/withValidation";
 
@@ -17,17 +15,7 @@ export const GET = new ApiHandlerBuilder()
 
     const result = await getProfileCommand(supabase);
 
-    if (isUserError(result)) {
-      logger.error({ error: result.error }, "Failed to get profile");
-      return badRequest(result.error.code, result.error.message);
-    }
-
-    if (isServerError(result)) {
-      logger.error({ error: result.error }, "Failed to get profile");
-      return internalServerError();
-    }
-
-    return ok(result.data);
+    return createResponse(result, {}, "get profile");
   });
 
 export const POST = new ApiHandlerBuilder()
@@ -40,15 +28,5 @@ export const POST = new ApiHandlerBuilder()
 
     const result = await updateProfileCommand(username, supabase);
 
-    if (isUserError(result)) {
-      logger.error({ error: result.error }, "Failed to update profile");
-      return badRequest(result.error.code, result.error.message);
-    }
-
-    if (isServerError(result)) {
-      logger.error({ error: result.error }, "Failed to update profile");
-      return internalServerError();
-    }
-
-    return ok({ username: result.data.username });
+    return createResponse(result, { username }, "update profile");
   });
