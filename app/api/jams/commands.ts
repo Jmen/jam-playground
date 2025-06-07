@@ -91,7 +91,7 @@ export async function getJamCommand(
     error: {
       code: "not_found",
       message: "Jam not found",
-      type: ErrorCode.USER_ERROR,
+      type: ErrorCode.CLIENT_ERROR,
     },
   };
 }
@@ -120,7 +120,7 @@ export async function createJamCommand(
       error: {
         code: "name_required",
         message: "Name is required",
-        type: ErrorCode.USER_ERROR,
+        type: ErrorCode.CLIENT_ERROR,
       },
     };
   }
@@ -131,7 +131,7 @@ export async function createJamCommand(
       error: {
         code: "description_required",
         message: "Description is required",
-        type: ErrorCode.USER_ERROR,
+        type: ErrorCode.CLIENT_ERROR,
       },
     };
   }

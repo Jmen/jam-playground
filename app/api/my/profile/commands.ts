@@ -21,7 +21,7 @@ export const getProfileCommand = async (
       error: {
         code: "unauthorized",
         message: "user not found",
-        type: ErrorCode.USER_ERROR,
+        type: ErrorCode.CLIENT_ERROR,
       },
     };
   }
@@ -67,7 +67,7 @@ export const updateProfileCommand = async (
       error: {
         code: "unauthorized",
         message: "user not found",
-        type: ErrorCode.USER_ERROR,
+        type: ErrorCode.CLIENT_ERROR,
       },
     };
   }

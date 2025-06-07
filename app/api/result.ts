@@ -2,7 +2,7 @@ import { logger } from "@/lib/logger";
 import { badRequest, internalServerError, ok } from "./apiResponse";
 
 export enum ErrorCode {
-  USER_ERROR = "user_error",
+  CLIENT_ERROR = "client_error",
   SERVER_ERROR = "server_error",
 }
 
@@ -16,7 +16,7 @@ export const isOk = <T>(result: Result<T>): result is { data: T } =>
 export const isUserError = <T>(
   result: Result<T>,
 ): result is { error: { code: string; message: string; type: ErrorCode } } =>
-  "error" in result && result.error.type === ErrorCode.USER_ERROR;
+  "error" in result && result.error.type === ErrorCode.CLIENT_ERROR;
 
 export const isServerError = <T>(
   result: Result<T>,

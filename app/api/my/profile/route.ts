@@ -7,6 +7,8 @@ import {
   updateProfileCommand,
 } from "@/app/api/my/profile/commands";
 import { isServerError, isUserError } from "../../result";
+import { updateProfileSchema } from "./schema";
+import { getTypedBody } from "../../wrappers/withValidation";
 
 export const GET = new ApiHandlerBuilder()
   .auth()
@@ -30,17 +32,11 @@ export const GET = new ApiHandlerBuilder()
 
 export const POST = new ApiHandlerBuilder()
   .auth()
-  .build(async (request: NextRequest, context?: Context) => {
-    const supabase = context?.supabase;
+  .validateBody(updateProfileSchema)
+  .build(async (_: NextRequest, context: Context) => {
+    const supabase = context.supabase;
 
-    const { username } = await request.json();
-
-    if (!username) {
-      return badRequest(
-        "username_is_required",
-        "username not found in request body",
-      );
-    }
+    const { username } = getTypedBody(context, updateProfileSchema);
 
     const result = await updateProfileCommand(username, supabase);
 
