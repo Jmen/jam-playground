@@ -17,16 +17,25 @@ interface NavigationBarProps {
 // Component for non-authenticated users
 function GuestNavigation() {
   return (
-    <Button size="sm" asChild>
-      <Link href="/auth">Sign in</Link>
-    </Button>
+    <div className="flex items-center gap-4">
+      <Button size="sm" variant="ghost" asChild>
+        <Link href="/docs">API Documentation</Link>
+      </Button>
+      <Button size="sm" asChild>
+        <Link href="/auth">Sign in</Link>
+      </Button>
+    </div>
   );
 }
 
 // Component for authenticated users with dropdown menu
 function UserNavigation() {
   return (
-    <DropdownMenu>
+    <div className="flex items-center gap-4">
+      <Button size="sm" variant="ghost" asChild>
+        <Link href="/docs">API Documentation</Link>
+      </Button>
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" className="flex items-center gap-1">
           Account
@@ -48,6 +57,7 @@ function UserNavigation() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   );
 }
 
@@ -59,9 +69,7 @@ export function NavigationBar({ user }: NavigationBarProps) {
         <Button size="sm" asChild>
           <Link href="/">Home</Link>
         </Button>
-        <div className="flex items-center gap-4">
-          {user ? <UserNavigation /> : <GuestNavigation />}
-        </div>
+        {user ? <UserNavigation /> : <GuestNavigation />}
       </div>
     </nav>
   );

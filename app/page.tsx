@@ -27,9 +27,6 @@ export default async function Page() {
               <Link href="/jams/create">Start a Jam</Link>
             </Button>
           )}
-          <Button size="lg" variant="outline" asChild>
-            <Link href="/docs">API Documentation</Link>
-          </Button>
         </div>
       </div>
 
