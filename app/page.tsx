@@ -20,7 +20,6 @@ export default async function Page() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col items-center justify-between gap-6 mb-10">
-        <h1 className="text-3xl font-bold">Home Page</h1>
         <div className="flex gap-4">
           {user && (
             <Button size="lg" className="w-48" asChild>
@@ -41,7 +40,7 @@ export default async function Page() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg text-gray-500">
-            No jams yet. {user && "Create your first jam!"}
+            No jams yet, sign in to get started {user && "Create your first jam!"}
           </p>
         </div>
       )}

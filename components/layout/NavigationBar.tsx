@@ -19,7 +19,7 @@ function GuestNavigation() {
   return (
     <div className="flex items-center gap-4">
       <Button size="sm" variant="ghost" asChild>
-        <Link href="/docs">API Documentation</Link>
+        <Link href="/docs">API docs</Link>
       </Button>
       <Button size="sm" asChild>
         <Link href="/auth">Sign in</Link>
@@ -33,7 +33,7 @@ function UserNavigation() {
   return (
     <div className="flex items-center gap-4">
       <Button size="sm" variant="ghost" asChild>
-        <Link href="/docs">API Documentation</Link>
+        <Link href="/docs">API docs</Link>
       </Button>
       <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -65,11 +65,18 @@ function UserNavigation() {
 export function NavigationBar({ user }: NavigationBarProps) {
   return (
     <nav className="border-b">
-      <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-        <Button size="sm" asChild>
-          <Link href="/">Home</Link>
-        </Button>
-        {user ? <UserNavigation /> : <GuestNavigation />}
+      <div className="container mx-auto px-4 h-14 flex items-center">
+        <div className="flex-1">
+          <Button size="sm" asChild>
+            <Link href="/">Home</Link>
+          </Button>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <h1 className="text-xl font-bold">Jam Playground</h1>
+        </div>
+        <div className="flex-1 flex justify-end">
+          {user ? <UserNavigation /> : <GuestNavigation />}
+        </div>
       </div>
     </nav>
   );
