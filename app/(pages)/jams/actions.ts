@@ -3,6 +3,7 @@
 import { createJamCommand } from "@/app/api/jams/commands";
 import { createClient } from "@/lib/supabase/clients/server";
 import { redirect } from "next/navigation";
+import { isError } from "@/app/api/result";
 
 export async function createJamAction(_prevState: unknown, formData: FormData) {
   const supabase = await createClient();
@@ -24,7 +25,7 @@ export async function createJamAction(_prevState: unknown, formData: FormData) {
 
   const result = await createJamCommand({ name, description }, supabase);
 
-  if (result.serverError || result.userError) {
+  if (isError(result)) {
     return result;
   }
 

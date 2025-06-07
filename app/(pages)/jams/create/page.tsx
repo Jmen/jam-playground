@@ -41,11 +41,8 @@ export default function Page() {
               {isPending ? "Creating..." : "Create"}
             </Button>
           </form>
-          {state?.serverError && (
-            <p className="text-red-500 mt-4">{state.serverError.message}</p>
-          )}
-          {state?.userError && (
-            <p className="text-red-500 mt-4">{state.userError.message}</p>
+          {state?.error && (
+            <p className="text-red-500 mt-4">{state.error.message}</p>
           )}
         </CardContent>
       </Card>

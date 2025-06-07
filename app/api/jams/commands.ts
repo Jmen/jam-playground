@@ -98,42 +98,16 @@ export async function getJamCommand(
 
 export async function createJamCommand(
   { name, description }: { name: string; description: string },
-  supabase?: SupabaseClient,
+  supabase: SupabaseClient,
 ): Promise<
   Result<{ id: string; name: string; description: string; created_at: string }>
 > {
-  if (!supabase) {
-    supabase = await createClient();
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/auth");
-  }
-
-  if (!name) {
-    logger.warn({ name }, "Name is required");
-    return {
-      error: {
-        code: "name_required",
-        message: "Name is required",
-        type: ErrorCode.CLIENT_ERROR,
-      },
-    };
-  }
-
-  if (!description) {
-    logger.warn({ description }, "Description is required");
-    return {
-      error: {
-        code: "description_required",
-        message: "Description is required",
-        type: ErrorCode.CLIENT_ERROR,
-      },
-    };
   }
 
   const idResult = await generateUniqueJamId(supabase);

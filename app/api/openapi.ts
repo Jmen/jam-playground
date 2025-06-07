@@ -1,43 +1,48 @@
-import 'zod-openapi/extend';
-import { z } from 'zod';
-import { createDocument } from 'zod-openapi';
-
-const jobId = z.string().openapi({
-  description: 'A unique identifier for a job',
-  example: '12345',
-  ref: 'jobId',
-});
-
-const title = z.string().openapi({
-  description: 'Job title',
-  example: 'My job',
-});
+import "zod-openapi/extend";
+import { createDocument } from "zod-openapi";
+import {
+  getProfileEndpointSchema,
+  postProfileEndpointSchema,
+} from "./my/profile/schema";
+import {
+  createJamEndpointSchema,
+  getJamEndpointSchema,
+  getJamsEndpointSchema,
+} from "./jams/schema";
+import { registerEndpointSchema, signInEndpointSchema, signOutEndpointSchema, forgotPasswordEndpointSchema, resetPasswordEndpointSchema } from "./auth/schema";
 
 export const document = createDocument({
-  openapi: '3.1.0',
+  openapi: "3.1.0",
   info: {
-    title: 'My API',
-    version: '1.0.0',
+    title: "Jam Playground API",
+    version: "0.0.1",
   },
   paths: {
-    '/jobs/{jobId}': {
-      put: {
-        requestParams: { path: z.object({ jobId }) },
-        requestBody: {
-          content: {
-            'application/json': { schema: z.object({ title }) },
-          },
-        },
-        responses: {
-          '200': {
-            description: '200 OK',
-            content: {
-              'application/json': { schema: z.object({ jobId, title }) },
-            },
-          },
-        },
-      },
+    '/api/auth/register': {
+      post: registerEndpointSchema,
+    },
+    '/api/auth/sign-in': {
+      post: signInEndpointSchema,
+    },
+    '/api/auth/sign-out': {
+      post: signOutEndpointSchema,
+    },
+    '/api/auth/forgot-password': {
+      post: forgotPasswordEndpointSchema,
+    },
+    '/api/auth/reset-password': {
+      post: resetPasswordEndpointSchema,
+    },
+    "/api/jams": {
+      get: getJamsEndpointSchema,
+      post: createJamEndpointSchema,
+    },
+    "/api/jams/{id}": {
+      get: getJamEndpointSchema,
+    },
+    "/api/my/profile": {
+      get: getProfileEndpointSchema,
+      post: postProfileEndpointSchema,
     },
   },
 });
-

@@ -21,11 +21,16 @@ export default async function Page() {
     <div className="container mx-auto py-8">
       <div className="flex flex-col items-center justify-between gap-6 mb-10">
         <h1 className="text-3xl font-bold">Home Page</h1>
-        {user && (
-          <Button size="lg" className="w-48" asChild>
-            <Link href="/jams/create">Start a Jam</Link>
+        <div className="flex gap-4">
+          {user && (
+            <Button size="lg" className="w-48" asChild>
+              <Link href="/jams/create">Start a Jam</Link>
+            </Button>
+          )}
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/docs">API Documentation</Link>
           </Button>
-        )}
+        </div>
       </div>
 
       {jams.data && jams.data.length > 0 ? (
