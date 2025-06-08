@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getJamData, addLoopToJam, getAudioFiles } from "./server";
+import { getJamCommand } from "@/app/api/jams/commands";
+import { addLoopToJamCommand } from "@/app/api/jams/[id]/loops/commands";
+import { getAudioFilesCommand } from "@/app/api/audio/commands";
 import { JamCard } from "@/components/JamCard";
 import { isOk, isError } from "@/app/api/result";
 
@@ -31,7 +33,7 @@ export default function JamDetailPage() {
   useEffect(() => {
     const fetchJam = async () => {
       try {
-        const result = await getJamData(id as string);
+        const result = await getJamCommand(id as string);
         if (isOk(result)) {
           const jamData: Jam = {
             id: result.data.id,
@@ -61,9 +63,16 @@ export default function JamDetailPage() {
 
   const fetchAudioFiles = async () => {
     try {
-      const result = await getAudioFiles();
+      const result = await getAudioFilesCommand();
       if (isOk(result)) {
-        setAudioFiles(result.data);
+        // Map the full AudioFile objects to the specific fields needed by the component
+        const files = result.data.map((file) => ({
+          id: file.id,
+          file_name: file.file_name,
+          file_type: file.file_type,
+          created_at: file.created_at,
+        }));
+        setAudioFiles(files);
       } else if (isError(result)) {
         console.error("Failed to fetch audio files:", result.error.message);
       }
@@ -83,24 +92,35 @@ export default function JamDetailPage() {
     setAddingLoop(true);
 
     try {
-      const result = await addLoopToJam(id as string, selectedAudioId);
+      const addResult = await addLoopToJamCommand(
+        id as string,
+        selectedAudioId,
+      );
 
-      if (isOk(result)) {
+      if (isError(addResult)) {
+        console.error("Failed to add loop:", addResult.error.message);
+        return;
+      }
+
+      // Then fetch the updated jam data
+      const jamResult = await getJamCommand(id as string);
+
+      if (isOk(jamResult)) {
         const updatedJam: Jam = {
-          id: result.data.id,
-          name: result.data.name,
-          description: result.data.description,
-          created_at: result.data.created_at,
+          id: jamResult.data.id,
+          name: jamResult.data.name,
+          description: jamResult.data.description,
+          created_at: jamResult.data.created_at,
           loops:
-            result.data.loops?.map((loop) => ({
+            jamResult.data.loops?.map((loop) => ({
               audioId: loop.audioId,
             })) || [],
         };
         setJam(updatedJam);
         setShowAddLoopModal(false);
         setSelectedAudioId(null);
-      } else if (isError(result)) {
-        console.error("Failed to add loop:", result.error.message);
+      } else if (isError(jamResult)) {
+        console.error("Failed to get updated jam:", jamResult.error.message);
       }
     } catch (error) {
       console.error("Error adding loop:", error);

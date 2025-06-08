@@ -3,12 +3,17 @@
 import { logger } from "@/lib/logger";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorCode, Result } from "@/app/api/result";
+import { createClient } from "@/lib/supabase/clients/server";
 
 export async function addLoopToJamCommand(
   id: string,
   audioId: string,
-  supabase: SupabaseClient,
+  supabase?: SupabaseClient,
 ): Promise<Result<{ id: string }>> {
+  if (!supabase) {
+    supabase = await createClient();
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
