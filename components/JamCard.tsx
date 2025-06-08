@@ -54,7 +54,11 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
             <h3 className="text-sm font-medium">Loops:</h3>
             <ul className="mt-2 space-y-1">
               {jam.loops.map((loop, index) => (
-                <li key={index} data-testid={`jam-loop-${index}`} className="text-sm">
+                <li
+                  key={index}
+                  data-testid={`jam-loop-${index}`}
+                  className="text-sm"
+                >
                   Loop {index + 1}: {loop.audioId}
                 </li>
               ))}

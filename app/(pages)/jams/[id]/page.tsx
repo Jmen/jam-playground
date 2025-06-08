@@ -17,7 +17,7 @@ import type { Jam as JamCardType } from "@/components/JamCard";
 
 type Jam = JamCardType & {
   loops: { audioId: string }[];
-}
+};
 
 export default function JamDetailPage() {
   const { id } = useParams();
@@ -38,9 +38,10 @@ export default function JamDetailPage() {
             name: result.data.name,
             description: result.data.description,
             created_at: result.data.created_at,
-            loops: result.data.loops?.map(loop => ({
-              audioId: loop.audioId
-            })) || []
+            loops:
+              result.data.loops?.map((loop) => ({
+                audioId: loop.audioId,
+              })) || [],
           };
           setJam(jamData);
         } else if (isError(result)) {
@@ -90,9 +91,10 @@ export default function JamDetailPage() {
           name: result.data.name,
           description: result.data.description,
           created_at: result.data.created_at,
-          loops: result.data.loops?.map(loop => ({
-            audioId: loop.audioId
-          })) || []
+          loops:
+            result.data.loops?.map((loop) => ({
+              audioId: loop.audioId,
+            })) || [],
         };
         setJam(updatedJam);
         setShowAddLoopModal(false);
@@ -138,9 +140,7 @@ export default function JamDetailPage() {
                 data-testid={`loop-${loop.audioId}`}
                 className="border rounded p-4 bg-gray-50"
               >
-                <p className="font-medium">
-                  Audio ID: {loop.audioId}
-                </p>
+                <p className="font-medium">Audio ID: {loop.audioId}</p>
               </div>
             ))}
           </div>

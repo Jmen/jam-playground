@@ -207,7 +207,7 @@ export class PlaywrightWebDriver implements ITestDriver {
                 .textContent()) ?? "";
 
             return {
-              id: id.replace(/^ID:\s*/, ""),  // Fix the jam ID extraction
+              id: id.replace(/^ID:\s*/, ""), // Fix the jam ID extraction
               name: nameText.replace(/^Name:\s*/, ""),
               description: descriptionText.replace(/^Description:\s*/, ""),
               createdAt,
@@ -283,7 +283,11 @@ export class PlaywrightWebDriver implements ITestDriver {
   };
 
   audio = {
-    upload: async (context: WebContext, path: string, type: string): Promise<{ id: string }> => {
+    upload: async (
+      context: WebContext,
+      path: string,
+      type: string,
+    ): Promise<{ id: string }> => {
       return await test.step("Upload Audio", async () => {
         const { page } = context;
 
@@ -303,7 +307,8 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         await page.waitForLoadState("networkidle");
 
-        const audioId = (await page.getByTestId("audio-id").textContent()) || "";
+        const audioId =
+          (await page.getByTestId("audio-id").textContent()) || "";
 
         return { id: audioId };
       });

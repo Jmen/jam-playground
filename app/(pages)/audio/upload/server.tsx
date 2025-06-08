@@ -5,11 +5,15 @@ import { ErrorCode, Result } from "@/app/api/result";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
 
-export async function uploadAudioFile(file: File): Promise<Result<{ id: string; fileHash: string }>> {
+export async function uploadAudioFile(
+  file: File,
+): Promise<Result<{ id: string; fileHash: string }>> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
-  
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return {
       error: {
@@ -79,16 +83,22 @@ export async function uploadAudioFile(file: File): Promise<Result<{ id: string; 
   };
 }
 
-export async function getAudioFiles(): Promise<Result<Array<{
-  id: string;
-  file_name: string;
-  file_type: string;
-  created_at: string;
-}>>> {
+export async function getAudioFiles(): Promise<
+  Result<
+    Array<{
+      id: string;
+      file_name: string;
+      file_type: string;
+      created_at: string;
+    }>
+  >
+> {
   const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
-  
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return {
       error: {
