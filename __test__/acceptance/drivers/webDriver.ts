@@ -172,7 +172,7 @@ export class PlaywrightWebDriver implements ITestDriver {
             .textContent()) || "";
 
         return {
-          id: jamId,
+          id: jamId.replace(/^ID:\s*/, ""),
           name: nameText.replace(/^Name:\s*/, ""),
           description: descriptionText.replace(/^Description:\s*/, ""),
           createdAt,
@@ -207,7 +207,7 @@ export class PlaywrightWebDriver implements ITestDriver {
                 .textContent()) ?? "";
 
             return {
-              id,
+              id: id.replace(/^ID:\s*/, ""),  // Fix the jam ID extraction
               name: nameText.replace(/^Name:\s*/, ""),
               description: descriptionText.replace(/^Description:\s*/, ""),
               createdAt,
@@ -220,30 +220,92 @@ export class PlaywrightWebDriver implements ITestDriver {
     },
     get: async (
       context: WebContext,
-      name: string,
+      jamId: string,
     ): Promise<Jam | undefined> => {
       return await test.step("Get Jam", async () => {
         const { page } = context;
 
-        await page.waitForTimeout(1000);
+        await page.goto(`/jams/${jamId}`);
+        await page.waitForLoadState("networkidle");
 
-        const url = page.url();
+        const nameText =
+          (await page.locator('[data-testid="jam-name"]').textContent()) || "";
+        const descriptionText =
+          (await page
+            .locator('[data-testid="jam-description"]')
+            .textContent()) || "";
+        const createdAt =
+          (await page
+            .locator('[data-testid="jam-created-at"]')
+            .textContent()) || "";
 
-        const isHomePage =
-          url.endsWith("/") ||
-          url.includes("/jam-playground") ||
-          url.includes("localhost") ||
-          url.includes("127.0.0.1");
+        const loopElements = await page.locator('[data-testid^="loop-"]').all();
+        const loops = await Promise.all(
+          loopElements.map(async (loopElement) => {
+            const dataTestId =
+              (await loopElement.getAttribute("data-testid")) || "";
+            const audioId = dataTestId.replace("loop-", "");
+            return { audioId };
+          }),
+        );
 
-        if (!isHomePage) {
-          throw new Error(
-            `Test failed: Not redirected to home page. Current URL: ${url}`,
-          );
-        }
+        return {
+          id: jamId,
+          name: nameText.replace(/^Name:\s*/, ""),
+          description: descriptionText.replace(/^Description:\s*/, ""),
+          createdAt,
+          loops: loops || [],
+        };
+      });
+    },
+    addLoop: async (
+      context: WebContext,
+      jamId: string,
+      audioId: string,
+    ): Promise<void> => {
+      return await test.step("Add Loop to Jam", async () => {
+        const { page } = context;
 
-        const jams = await this.jams.getAll(context);
+        await page.goto(`/jams/${jamId}`);
+        await page.waitForLoadState("networkidle");
 
-        return jams.find((jam) => jam.name === name);
+        await page.getByTestId("add-loop-button").click();
+
+        await page.getByTestId(`audio-item-${audioId}`).click();
+
+        await page.getByRole("button", { name: "Add", exact: true }).click();
+
+        await page.waitForSelector(`[data-testid="loop-${audioId}"]`);
+
+        await expect(page.getByTestId(`loop-${audioId}`)).toBeVisible();
+      });
+    },
+  };
+
+  audio = {
+    upload: async (context: WebContext, path: string, type: string): Promise<{ id: string }> => {
+      return await test.step("Upload Audio", async () => {
+        const { page } = context;
+
+        await page.goto("/audio/upload");
+        await page.waitForLoadState("networkidle");
+
+        const fileInput = page.locator('input[type="file"]');
+
+        const fs = require("fs");
+        await fileInput.setInputFiles({
+          name: path,
+          mimeType: type,
+          buffer: Buffer.from(fs.readFileSync(path)),
+        });
+
+        await page.getByRole("button", { name: /upload/i }).click();
+
+        await page.waitForLoadState("networkidle");
+
+        const audioId = (await page.getByTestId("audio-id").textContent()) || "";
+
+        return { id: audioId };
       });
     },
   };

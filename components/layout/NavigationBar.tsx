@@ -36,27 +36,31 @@ function UserNavigation() {
         <Link href="/docs">API docs</Link>
       </Button>
       <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="outline" className="flex items-center gap-1">
-          Account
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[180px] p-2">
-        <DropdownMenuItem asChild className="px-3 py-2 cursor-pointer">
-          <Link href="/account" className="w-full">
-            My Account
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="px-3 py-2 cursor-pointer">
-          <SignOutButton
+        <DropdownMenuTrigger asChild>
+          <Button
             size="sm"
-            className="w-full justify-start p-0 h-auto font-normal"
-            variant="ghost"
-          />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+            variant="outline"
+            className="flex items-center gap-1"
+          >
+            Account
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[180px] p-2">
+          <DropdownMenuItem asChild className="px-3 py-2 cursor-pointer">
+            <Link href="/account" className="w-full">
+              My Account
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="px-3 py-2 cursor-pointer">
+            <SignOutButton
+              size="sm"
+              className="w-full justify-start p-0 h-auto font-normal"
+              variant="ghost"
+            />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

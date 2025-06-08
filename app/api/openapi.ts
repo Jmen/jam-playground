@@ -9,7 +9,13 @@ import {
   getJamEndpointSchema,
   getJamsEndpointSchema,
 } from "./jams/schema";
-import { registerEndpointSchema, signInEndpointSchema, signOutEndpointSchema, forgotPasswordEndpointSchema, resetPasswordEndpointSchema } from "./auth/schema";
+import {
+  registerEndpointSchema,
+  signInEndpointSchema,
+  signOutEndpointSchema,
+  forgotPasswordEndpointSchema,
+  resetPasswordEndpointSchema,
+} from "./auth/schema";
 
 export const document = createDocument({
   openapi: "3.1.0",
@@ -18,19 +24,19 @@ export const document = createDocument({
     version: "0.0.1",
   },
   paths: {
-    '/api/auth/register': {
+    "/api/auth/register": {
       post: registerEndpointSchema,
     },
-    '/api/auth/sign-in': {
+    "/api/auth/sign-in": {
       post: signInEndpointSchema,
     },
-    '/api/auth/sign-out': {
+    "/api/auth/sign-out": {
       post: signOutEndpointSchema,
     },
-    '/api/auth/forgot-password': {
+    "/api/auth/forgot-password": {
       post: forgotPasswordEndpointSchema,
     },
-    '/api/auth/reset-password': {
+    "/api/auth/reset-password": {
       post: resetPasswordEndpointSchema,
     },
     "/api/jams": {

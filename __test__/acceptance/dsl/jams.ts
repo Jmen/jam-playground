@@ -22,4 +22,16 @@ export class Jams {
 
     expect(jam).toBeTruthy();
   }
+
+  async addLoop(jamId: string, audioId: string): Promise<void> {
+    await this.driver.jams.addLoop(this.context, jamId, audioId);
+  }
+
+  async containsLoop(jamId: string, audioId: string): Promise<void> {
+    const jam = await this.driver.jams.get(this.context, jamId);
+
+    expect(jam).toBeTruthy();
+    expect(jam?.loops).toBeTruthy();
+    expect(jam?.loops?.some((loop) => loop.audioId === audioId)).toBeTruthy();
+  }
 }

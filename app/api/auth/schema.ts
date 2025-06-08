@@ -29,7 +29,7 @@ export const signInEndpointSchema = {
   responses: {
     "200": {
       description: "200 OK",
-    }
+    },
   },
 };
 
@@ -42,7 +42,7 @@ export const registerEndpointSchema = {
   responses: {
     "200": {
       description: "200 OK",
-    }
+    },
   },
 };
 
@@ -55,7 +55,7 @@ export const forgotPasswordEndpointSchema = {
   responses: {
     "200": {
       description: "200 OK",
-    }
+    },
   },
 };
 
@@ -68,7 +68,7 @@ export const resetPasswordEndpointSchema = {
   responses: {
     "200": {
       description: "200 OK",
-    }
+    },
   },
 };
 
@@ -76,6 +76,6 @@ export const signOutEndpointSchema = {
   responses: {
     "200": {
       description: "200 OK",
-    }
+    },
   },
 };

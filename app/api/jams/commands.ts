@@ -53,7 +53,7 @@ export async function getJamsCommand(
 export async function getJamCommand(
   id: string,
 ): Promise<
-  Result<{ id: string; name: string; description: string; created_at: string }>
+  Result<{ id: string; name: string; description: string; created_at: string; loops?: { audioId: string }[] }>
 > {
   const supabase = await createClient();
 
@@ -75,12 +75,32 @@ export async function getJamCommand(
   }
 
   if (jams?.length > 0) {
+    const jam = jams[0];
+    
+    const { data: loops, error: loopsError } = await supabase
+      .from("jam_loops")
+      .select("audio_id")
+      .eq("jam_id", jam.id)
+      .order("position");
+    
+    if (loopsError) {
+      logger.error({ error: loopsError }, "Failed to get jam loops");
+      return {
+        error: {
+          code: "internal_server_error",
+          message: "Failed to get jam loops",
+          type: ErrorCode.SERVER_ERROR,
+        },
+      };
+    }
+
     return {
       data: {
-        id: jams[0].human_readable_id,
-        name: jams[0].name,
-        description: jams[0].description,
-        created_at: jams[0].created_at,
+        id: jam.human_readable_id,
+        name: jam.name,
+        description: jam.description,
+        created_at: jam.created_at,
+        loops: loops?.map(loop => ({ audioId: loop.audio_id })) || [],
       },
     };
   }

@@ -1,8 +1,10 @@
 import { ITestDriver, Context } from "../drivers/ITestDriver";
-import { expect } from "@playwright/test";
+import { Audio } from "./audio";
 import { Jams } from "./jams";
+import { expect } from "@playwright/test";
 export class User {
   jams: Jams;
+  audio: Audio;
 
   private constructor(
     private readonly driver: ITestDriver,
@@ -11,6 +13,7 @@ export class User {
     public readonly password: string,
   ) {
     this.jams = new Jams(driver, context);
+    this.audio = new Audio(driver, context);
   }
 
   static uniqueEmail() {

@@ -8,6 +8,7 @@ export async function getTokens(request: NextRequest) {
   const refreshToken = request.headers.get("X-Refresh-Token");
 
   if (!authHeader?.startsWith("Bearer ")) {
+    logger.error({ authHeader }, "Token does not begin with {Bearer}");
     return { error: "Token does not begin with {Bearer}" };
   }
 
@@ -23,30 +24,36 @@ export async function getTokens(request: NextRequest) {
 export async function getUserId(accessToken: string, refreshToken: string) {
   const supabase = await createClient();
 
-  console.log("Setting session");
-
   try {
     const { error } = await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken,
-    }); 
+    });
 
     if (error) {
-      logger.error({ error }, "Failed to set session");
+      logger.error(
+        { error },
+        "Failed to set session, supabase returned an error",
+      );
       return { error: { code: error.code, message: error.message } };
     }
-
   } catch (error) {
     if (error instanceof AuthApiError) {
-      logger.error({ error }, "Failed to set session");
+      logger.error(
+        { error },
+        "Failed to set session, supabase threw an AuthApiError error",
+      );
       return { error: { code: error.code, message: error.message } };
     }
 
-    logger.error({ error }, "Failed to set session");
-    return { error: { code: "internal_server_error", message: "Failed to set session" } };
+    logger.error({ error }, "Failed to set session, supabase threw an error");
+    return {
+      error: {
+        code: "internal_server_error",
+        message: "Failed to set session",
+      },
+    };
   }
-
-  console.log("Session set");
 
   const {
     data: { user },
@@ -54,12 +61,12 @@ export async function getUserId(accessToken: string, refreshToken: string) {
   } = await supabase.auth.getUser();
 
   if (error) {
-    logger.error({ error }, "Failed to get user");
+    logger.error({ error }, "Failed to get user, supabase returned an error");
     return { error: { code: error.code, message: error.message } };
   }
 
   if (!user?.id) {
-    logger.error({ user }, "User not found");
+    logger.error({ user }, "User not found, supabase data response is empty");
     return { error: { code: "user_not_found", message: "User not found" } };
   }
 

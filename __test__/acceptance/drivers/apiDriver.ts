@@ -190,9 +190,84 @@ export class ApiDriver implements ITestDriver {
     },
     get: async (
       context: ApiContext,
-      name: string,
+      jamId: string,
     ): Promise<Jam | undefined> => {
-      throw new Error("Not implemented");
+      const request = new Request(`${this.baseUrl}/api/jams/${jamId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${context.accessToken}`,
+          "X-Refresh-Token": context.refreshToken || "",
+        },
+      });
+
+      const response = await fetch(request);
+
+      const body = await this.checkResponse(request, response);
+
+      if (body.data) {
+        return {
+          id: body.data.id,
+          name: body.data.name,
+          description: body.data.description,
+          createdAt: body.data.created_at,
+          loops:
+            body.data.loops?.map((loop: any) => ({
+              audioId: loop.audio_id,
+            })) || [],
+        };
+      }
+
+      return undefined;
+    },
+    addLoop: async (
+      context: ApiContext,
+      jamId: string,
+      audioId: string,
+    ): Promise<void> => {
+      const request = new Request(`${this.baseUrl}/api/jams/${jamId}/loops`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${context.accessToken}`,
+          "X-Refresh-Token": context.refreshToken || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ audioId }),
+      });
+
+      const response = await fetch(request);
+
+      await this.checkResponse(request, response);
+    },
+  };
+
+  audio = {
+    upload: async (
+      context: ApiContext,
+      path: string,
+      type: string,
+    ): Promise<{ id: string }> => {
+      const fs = require("fs");
+      const audioData = fs.readFileSync(path);
+      const fileName = path.split("/").pop();
+      const audioFile = new File([audioData], fileName!, { type });
+
+      const formData = new FormData();
+      formData.append("file", audioFile);
+
+      const request = new Request(`${this.baseUrl}/api/audio`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${context.accessToken}`,
+          "X-Refresh-Token": context.refreshToken || "",
+        },
+        body: formData,
+      });
+
+      const response = await fetch(request);
+
+      const body = await this.checkResponse(request, response);
+
+      return body.data;
     },
   };
 }

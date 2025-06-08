@@ -40,7 +40,8 @@ export default async function Page() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg text-gray-500">
-            No jams yet, sign in to get started {user && "Create your first jam!"}
+            {!user && "Sign in to get started"}
+            {user && "Create your first jam!"}
           </p>
         </div>
       )}
