@@ -11,6 +11,7 @@ import {
   updateProfileCommand,
 } from "@/app/api/my/profile/commands";
 import { logger } from "@/lib/logger";
+import { isError } from "@/app/api/result";
 
 const schema = z.object({
   username: z
@@ -27,11 +28,9 @@ export function ProfileForm() {
 
   useEffect(() => {
     getProfileCommand().then((result) => {
-      const error = result.userError || result.serverError;
-
-      if (error) {
-        logger.error("Failed to load profile", { error });
-        setError(error.message);
+      if (isError(result)) {
+        logger.error("Failed to load profile", { error: result.error });
+        setError(result.error.message);
         return;
       }
 
@@ -49,10 +48,8 @@ export function ProfileForm() {
 
     const result = await updateProfileCommand(username);
 
-    const error = result.userError || result.serverError;
-
-    if (error) {
-      setError(error.message);
+    if (isError(result)) {
+      setError(result.error.message);
       return;
     }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { uploadAudioFile } from "./server";
+import { uploadAudioCommand } from "@/app/api/audio/commands";
 import { isOk, isUserError, isServerError } from "@/app/api/result";
 
 export default function AudioUploadPage() {
@@ -23,8 +23,12 @@ export default function AudioUploadPage() {
     setUploading(true);
 
     try {
-      // Use the server component function instead of direct API call
-      const result = await uploadAudioFile(file);
+      const result = await uploadAudioCommand({
+        file,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      });
 
       if (isOk(result)) {
         setAudioId(result.data.id);

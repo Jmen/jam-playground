@@ -1,0 +1,24 @@
+# Technology Stack
+
+- Next.js
+- TypeScript
+- Supabase
+- Tailwind CSS
+- Shadcn UI
+- Zod
+- OpenAPI & Swagger UI
+- Jest
+- Playwright
+
+# Architecture
+
+## Next.js - Pages
+
+- pages are stored in /app/(pages)
+- pages should call into the Commands defined in the api directory as server actions
+- pages should only have a server action, when it handles specific UI logic
+
+## Next.js - API Routes
+
+- API routes are stored in /app/api
+- Routes should only handle http requests and delegate domain logic to Commands

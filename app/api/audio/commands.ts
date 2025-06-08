@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorCode, Result } from "@/app/api/result";
 import crypto from "crypto";
+import { createClient } from "@/lib/supabase/clients/server";
 
 interface AudioFile {
   id: string;
@@ -23,13 +24,16 @@ export async function uploadAudioCommand(
     fileType,
     fileSize,
   }: { file: File; fileName: string; fileType: string; fileSize: number },
-  supabase: SupabaseClient,
+  supabase?: SupabaseClient,
 ): Promise<Result<{ id: string; fileHash: string }>> {
+  const supabaseClient = supabase || (await createClient());
+
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+    error: userError,
+  } = await supabaseClient.auth.getUser();
 
-  if (!user) {
+  if (userError || !user) {
     return {
       error: {
         code: "unauthorized",
@@ -48,7 +52,7 @@ export async function uploadAudioCommand(
   const fileExt = fileName.split(".").pop();
   const filePath = `${hash}.${fileExt}`;
 
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabaseClient.storage
     .from("audio-files")
     .upload(filePath, file, {
       cacheControl: "3600",
@@ -66,7 +70,7 @@ export async function uploadAudioCommand(
     };
   }
 
-  const { data: audioFile, error: dbError } = await supabase
+  const { data: audioFile, error: dbError } = await supabaseClient
     .from("audio_files")
     .insert({
       owner_id: user.id,
@@ -99,13 +103,16 @@ export async function uploadAudioCommand(
 }
 
 export async function getAudioFilesCommand(
-  supabase: SupabaseClient,
+  supabase?: SupabaseClient,
 ): Promise<Result<AudioFile[]>> {
+  const supabaseClient = supabase || (await createClient());
+
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+    error: userError,
+  } = await supabaseClient.auth.getUser();
 
-  if (!user) {
+  if (userError || !user) {
     return {
       error: {
         code: "unauthorized",
@@ -116,7 +123,7 @@ export async function getAudioFilesCommand(
   }
 
   // Get all audio files for the user
-  const { data: audioFiles, error } = await supabase
+  const { data: audioFiles, error } = await supabaseClient
     .from("audio_files")
     .select("*")
     .eq("owner_id", user.id)
