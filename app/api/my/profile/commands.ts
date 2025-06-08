@@ -4,10 +4,16 @@ import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorCode, Result } from "../../result";
+import { getProfile, upsertProfile } from "./db";
+import { isError } from "../../result";
+
+export interface Profile {
+  username: string;
+}
 
 export const getProfileCommand = async (
   supabase?: SupabaseClient,
-): Promise<Result<{ username: string }>> => {
+): Promise<Result<Profile>> => {
   const supabaseClient = supabase || (await createClient());
 
   const {
@@ -26,28 +32,17 @@ export const getProfileCommand = async (
     };
   }
 
-  const { data, error: profileError } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("user_id", user.id)
-    .limit(1);
+  const result = await getProfile(supabaseClient, user.id);
 
-  if (profileError) {
-    logger.error({ error: profileError, user }, "profile not found");
+  if (isError(result) && result.error?.code === "not_found") {
     return {
-      error: {
-        code: profileError.code,
-        message: profileError.message,
-        type: ErrorCode.SERVER_ERROR,
+      data: {
+        username: "",
       },
     };
   }
 
-  if (data?.length === 0) {
-    return { data: { username: "" } };
-  }
-
-  return { data: data[0] };
+  return result;
 };
 
 export const updateProfileCommand = async (
@@ -72,22 +67,5 @@ export const updateProfileCommand = async (
     };
   }
 
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .upsert({ user_id: user.id, username })
-    .select()
-    .single();
-
-  if (error) {
-    logger.error({ error, user, username }, "error updating profile");
-    return {
-      error: {
-        code: error.code,
-        message: error.message,
-        type: ErrorCode.SERVER_ERROR,
-      },
-    };
-  }
-
-  return { data };
+  return await upsertProfile(supabaseClient, user.id, username);
 };

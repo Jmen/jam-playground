@@ -1,12 +1,13 @@
 "use server";
 
-import { logger } from "@/lib/logger";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { ErrorCode, Result } from "@/app/api/result";
+import { ErrorCode, isError, Result } from "@/app/api/result";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/clients/server";
+import { insertAudio, getAudio } from "./db";
+import { uploadAudio } from "./storage";
 
-interface AudioFile {
+export interface AudioFile {
   id: string;
   owner_id: string;
   created_at: string;
@@ -25,7 +26,7 @@ export async function uploadAudioCommand(
     fileSize,
   }: { file: File; fileName: string; fileType: string; fileSize: number },
   supabase?: SupabaseClient,
-): Promise<Result<{ id: string; fileHash: string }>> {
+): Promise<Result<AudioFile>> {
   const supabaseClient = supabase || (await createClient());
 
   const {
@@ -52,54 +53,21 @@ export async function uploadAudioCommand(
   const fileExt = fileName.split(".").pop();
   const filePath = `${hash}.${fileExt}`;
 
-  const { error: uploadError } = await supabaseClient.storage
-    .from("audio-files")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: true,
-    });
+  const uploadResult = await uploadAudio(supabaseClient, filePath, file);
 
-  if (uploadError && uploadError.message !== "The resource already exists") {
-    logger.error({ error: uploadError }, "Failed to upload audio file");
-    return {
-      error: {
-        code: "internal_server_error",
-        message: "Failed to upload audio file",
-        type: ErrorCode.SERVER_ERROR,
-      },
-    };
+  if (isError(uploadResult)) {
+    return uploadResult;
   }
 
-  const { data: audioFile, error: dbError } = await supabaseClient
-    .from("audio_files")
-    .insert({
-      owner_id: user.id,
-      file_hash: hash,
-      file_path: filePath,
-      file_name: fileName,
-      file_size: fileSize,
-      file_type: fileType,
-    })
-    .select()
-    .single();
-
-  if (dbError || !audioFile) {
-    logger.error({ error: dbError }, "Failed to store audio file metadata");
-    return {
-      error: {
-        code: "internal_server_error",
-        message: "Failed to store audio file metadata",
-        type: ErrorCode.SERVER_ERROR,
-      },
-    };
-  }
-
-  return {
-    data: {
-      id: audioFile.id,
-      fileHash: hash,
-    },
-  };
+  return await insertAudio(
+    supabaseClient,
+    user,
+    hash,
+    filePath,
+    fileName,
+    fileSize,
+    fileType,
+  );
 }
 
 export async function getAudioFilesCommand(
@@ -122,26 +90,5 @@ export async function getAudioFilesCommand(
     };
   }
 
-  // Get all audio files for the user
-  const { data: audioFiles, error } = await supabaseClient
-    .from("audio_files")
-    .select("*")
-    .eq("owner_id", user.id)
-    .eq("deleted", false)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    logger.error({ error }, "Failed to fetch audio files");
-    return {
-      error: {
-        code: "internal_server_error",
-        message: "Failed to fetch audio files",
-        type: ErrorCode.SERVER_ERROR,
-      },
-    };
-  }
-
-  return {
-    data: audioFiles,
-  };
+  return getAudio(supabaseClient, user);
 }
