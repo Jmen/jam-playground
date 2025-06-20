@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getJamCommand } from "@/app/api/jams/commands";
-import { addLoopToJamCommand } from "@/app/api/jams/[id]/loops/commands";
-import { getAudioFilesCommand } from "@/app/api/audio/commands";
-import { JamCard } from "@/components/JamCard";
+import { getJamCommand } from "@/app/api/jams/[id]/commands";
+import { addLoopToJamCommand, Loop } from "@/app/api/jams/[id]/loops/commands";
+import { getAudioCommand } from "@/app/api/audio/commands";
+import { JamCard } from "@/components/jams/JamCard";
 import { isOk, isError } from "@/app/api/result";
+import { AudioUpload } from "@/components/audio/AudioUpload";
 
 interface AudioFile {
   id: string;
@@ -15,11 +16,9 @@ interface AudioFile {
   created_at: string;
 }
 
-import type { Jam as JamCardType } from "@/components/JamCard";
+import type { Jam as JamCardType } from "@/components/jams/JamCard";
 
-type Jam = JamCardType & {
-  loops: { audioId: string }[];
-};
+type Jam = JamCardType;
 
 export default function JamDetailPage() {
   const { id } = useParams();
@@ -27,25 +26,16 @@ export default function JamDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showAddLoopModal, setShowAddLoopModal] = useState(false);
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
-  const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
+  const [selectedAudioIds, setSelectedAudioIds] = useState<string[]>([]);
   const [addingLoop, setAddingLoop] = useState(false);
 
   useEffect(() => {
     const fetchJam = async () => {
       try {
         const result = await getJamCommand(id as string);
+
         if (isOk(result)) {
-          const jamData: Jam = {
-            id: result.data.id,
-            name: result.data.name,
-            description: result.data.description,
-            created_at: result.data.created_at,
-            loops:
-              result.data.loops?.map((loop) => ({
-                audioId: loop.audioId,
-              })) || [],
-          };
-          setJam(jamData);
+          setJam(result.data);
         } else if (isError(result)) {
           console.error("Error fetching jam:", result.error.message);
         }
@@ -63,10 +53,9 @@ export default function JamDetailPage() {
 
   const fetchAudioFiles = async () => {
     try {
-      const result = await getAudioFilesCommand();
+      const result = await getAudioCommand();
       if (isOk(result)) {
-        // Map the full AudioFile objects to the specific fields needed by the component
-        const files = result.data.map((file) => ({
+        const files = result.data.map((file: AudioFile) => ({
           id: file.id,
           file_name: file.file_name,
           file_type: file.file_type,
@@ -86,39 +75,39 @@ export default function JamDetailPage() {
     setShowAddLoopModal(true);
   };
 
+  const toggleAudioSelection = (audioId: string) => {
+    setSelectedAudioIds((prev) => {
+      if (prev.includes(audioId)) {
+        return prev.filter((id) => id !== audioId);
+      } else {
+        return [...prev, audioId];
+      }
+    });
+  };
+
   const handleAddLoop = async () => {
-    if (!selectedAudioId || !id) return;
+    if (selectedAudioIds.length === 0 || !id) return;
 
     setAddingLoop(true);
 
     try {
-      const addResult = await addLoopToJamCommand(
-        id as string,
-        selectedAudioId,
-      );
+      const loop: Loop = {
+        audio: selectedAudioIds.map((id) => ({ id })),
+      };
+
+      const addResult = await addLoopToJamCommand(id as string, loop);
 
       if (isError(addResult)) {
         console.error("Failed to add loop:", addResult.error.message);
         return;
       }
 
-      // Then fetch the updated jam data
       const jamResult = await getJamCommand(id as string);
 
       if (isOk(jamResult)) {
-        const updatedJam: Jam = {
-          id: jamResult.data.id,
-          name: jamResult.data.name,
-          description: jamResult.data.description,
-          created_at: jamResult.data.created_at,
-          loops:
-            jamResult.data.loops?.map((loop) => ({
-              audioId: loop.audioId,
-            })) || [],
-        };
-        setJam(updatedJam);
+        setJam(jamResult.data);
         setShowAddLoopModal(false);
-        setSelectedAudioId(null);
+        setSelectedAudioIds([]);
       } else if (isError(jamResult)) {
         console.error("Failed to get updated jam:", jamResult.error.message);
       }
@@ -141,7 +130,9 @@ export default function JamDetailPage() {
     <div className="container mx-auto p-4">
       <JamCard jam={jam} className="mb-6" />
 
-      <div className="mb-6">
+      <AudioUpload showNavigationButton={false} />
+
+      <div className="mb-6 mt-6">
         <h2 className="text-xl font-semibold mb-2">Loops</h2>
 
         <button
@@ -151,25 +142,8 @@ export default function JamDetailPage() {
         >
           Add Loop
         </button>
-
-        {jam.loops && jam.loops.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {jam.loops.map((loop, index) => (
-              <div
-                key={index}
-                data-testid={`loop-${loop.audioId}`}
-                className="border rounded p-4 bg-gray-50"
-              >
-                <p className="font-medium">Audio ID: {loop.audioId}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>No loops added yet.</p>
-        )}
       </div>
 
-      {/* Add Loop Modal */}
       {showAddLoopModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -182,9 +156,9 @@ export default function JamDetailPage() {
                     key={audio.id}
                     data-testid={`audio-item-${audio.id}`}
                     className={`p-2 border-b cursor-pointer ${
-                      selectedAudioId === audio.id ? "bg-blue-100" : ""
+                      selectedAudioIds.includes(audio.id) ? "bg-blue-100" : ""
                     }`}
-                    onClick={() => setSelectedAudioId(audio.id)}
+                    onClick={() => toggleAudioSelection(audio.id)}
                   >
                     <p className="font-medium">{audio.file_name}</p>
                     <p className="text-xs text-gray-500">{audio.file_type}</p>
@@ -206,7 +180,7 @@ export default function JamDetailPage() {
               </button>
               <button
                 onClick={handleAddLoop}
-                disabled={!selectedAudioId || addingLoop}
+                disabled={selectedAudioIds.length === 0 || addingLoop}
                 className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
               >
                 {addingLoop ? "Adding..." : "Add"}

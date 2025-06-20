@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/clients/server";
 import { Button } from "@/components/ui/button";
 import { getJamsCommand } from "@/app/api/jams/commands";
-import { JamCard } from "@/components/JamCard";
+import { JamCard } from "@/components/jams/JamCard";
 import { isError } from "./api/result";
 
 export default async function Page() {

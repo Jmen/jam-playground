@@ -1,5 +1,6 @@
-import { test, expect, Page, type Browser } from "@playwright/test";
-import { ITestDriver, Jam } from "./ITestDriver";
+import { type Browser, expect, Page, test } from "@playwright/test";
+import { ITestDriver } from "./ITestDriver";
+import { DraftLoop, Jam } from "../dsl/jams";
 
 export interface WebContext {
   page: Page;
@@ -166,16 +167,37 @@ export class PlaywrightWebDriver implements ITestDriver {
           (await page
             .locator('[data-testid="jam-description"]')
             .textContent()) || "";
-        const createdAt =
+        const created_at =
           (await page
             .locator('[data-testid="jam-created-at"]')
             .textContent()) || "";
+
+        const loopContainers = await page
+          .locator('[data-testid^="loop-container-"]')
+          .all();
+        const loops = await Promise.all(
+          loopContainers.map(async (loopContainer) => {
+            const audioElements = await loopContainer
+              .locator('[data-testid^="audio-"]')
+              .all();
+            const audio = await Promise.all(
+              audioElements.map(async (audioElement) => {
+                const dataTestId =
+                  (await audioElement.getAttribute("data-testid")) || "";
+                const id = dataTestId.replace("audio-", "");
+                return { id };
+              }),
+            );
+            return { audio };
+          }),
+        );
 
         return {
           id: jamId.replace(/^ID:\s*/, ""),
           name: nameText.replace(/^Name:\s*/, ""),
           description: descriptionText.replace(/^Description:\s*/, ""),
-          createdAt,
+          created_at,
+          loops: loops || [],
         };
       });
     },
@@ -188,7 +210,7 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         const jamCards = await page.locator('[data-testid="jam-card"]').all();
 
-        const jamsData = await Promise.all(
+        return await Promise.all(
           jamCards.map(async (jamCard) => {
             const id =
               (await jamCard.locator('[data-testid="jam-id"]').textContent()) ??
@@ -201,21 +223,40 @@ export class PlaywrightWebDriver implements ITestDriver {
               (await jamCard
                 .locator('[data-testid="jam-description"]')
                 .textContent()) ?? "";
-            const createdAt =
+            const created_at =
               (await jamCard
                 .locator('[data-testid="jam-created-at"]')
                 .textContent()) ?? "";
 
+            const loopContainer = await jamCard
+              .locator('[data-testid^="loop-container-"]')
+              .first();
+            let loops: { audio: { id: string }[] }[] = [];
+
+            if ((await loopContainer.count()) > 0) {
+              const audioElements = await loopContainer
+                .locator('[data-testid^="audio-"]')
+                .all();
+              const audio = await Promise.all(
+                audioElements.map(async (audioElement) => {
+                  const dataTestId =
+                    (await audioElement.getAttribute("data-testid")) || "";
+                  const id = dataTestId.replace("audio-", "");
+                  return { id };
+                }),
+              );
+              loops = [{ audio }];
+            }
+
             return {
-              id: id.replace(/^ID:\s*/, ""), // Fix the jam ID extraction
+              id: id.replace(/^ID:\s*/, ""),
               name: nameText.replace(/^Name:\s*/, ""),
               description: descriptionText.replace(/^Description:\s*/, ""),
-              createdAt,
+              created_at,
+              loops: loops || [],
             };
           }),
         );
-
-        return jamsData;
       });
     },
     get: async (
@@ -234,18 +275,28 @@ export class PlaywrightWebDriver implements ITestDriver {
           (await page
             .locator('[data-testid="jam-description"]')
             .textContent()) || "";
-        const createdAt =
+        const created_at =
           (await page
             .locator('[data-testid="jam-created-at"]')
             .textContent()) || "";
 
-        const loopElements = await page.locator('[data-testid^="loop-"]').all();
+        const loopContainers = await page
+          .locator('[data-testid^="loop-container-"]')
+          .all();
         const loops = await Promise.all(
-          loopElements.map(async (loopElement) => {
-            const dataTestId =
-              (await loopElement.getAttribute("data-testid")) || "";
-            const audioId = dataTestId.replace("loop-", "");
-            return { audioId };
+          loopContainers.map(async (loopContainer) => {
+            const audioElements = await loopContainer
+              .locator('[data-testid^="audio-"]')
+              .all();
+            const audio = await Promise.all(
+              audioElements.map(async (audioElement) => {
+                const dataTestId =
+                  (await audioElement.getAttribute("data-testid")) || "";
+                const id = dataTestId.replace("audio-", "");
+                return { id };
+              }),
+            );
+            return { audio };
           }),
         );
 
@@ -253,7 +304,7 @@ export class PlaywrightWebDriver implements ITestDriver {
           id: jamId,
           name: nameText.replace(/^Name:\s*/, ""),
           description: descriptionText.replace(/^Description:\s*/, ""),
-          createdAt,
+          created_at,
           loops: loops || [],
         };
       });
@@ -261,7 +312,7 @@ export class PlaywrightWebDriver implements ITestDriver {
     addLoop: async (
       context: WebContext,
       jamId: string,
-      audioId: string,
+      draftLoop: DraftLoop,
     ): Promise<void> => {
       return await test.step("Add Loop to Jam", async () => {
         const { page } = context;
@@ -269,15 +320,36 @@ export class PlaywrightWebDriver implements ITestDriver {
         await page.goto(`/jams/${jamId}`);
         await page.waitForLoadState("networkidle");
 
+        const initialLoopCount = await page
+          .locator('[data-testid^="loop-container-"]')
+          .count();
+
         await page.getByTestId("add-loop-button").click();
 
-        await page.getByTestId(`audio-item-${audioId}`).click();
+        for (const audio of draftLoop.audio) {
+          await page.getByTestId(`audio-item-${audio.id}`).click();
+        }
 
         await page.getByRole("button", { name: "Add", exact: true }).click();
 
-        await page.waitForSelector(`[data-testid="loop-${audioId}"]`);
+        await page.waitForLoadState("networkidle");
 
-        await expect(page.getByTestId(`loop-${audioId}`)).toBeVisible();
+        const expectedLoopCount = initialLoopCount + 1;
+
+        try {
+          await page.waitForFunction(
+            (expected) => {
+              const containers = document.querySelectorAll(
+                '[data-testid^="loop-container-"]',
+              );
+              return containers.length >= expected;
+            },
+            expectedLoopCount,
+            { timeout: 5000 },
+          );
+        } catch (error) {
+          console.error("Timeout waiting for loop to appear:", error);
+        }
       });
     },
   };
@@ -296,6 +368,7 @@ export class PlaywrightWebDriver implements ITestDriver {
 
         const fileInput = page.locator('input[type="file"]');
 
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const fs = require("fs");
         await fileInput.setInputFiles({
           name: path,

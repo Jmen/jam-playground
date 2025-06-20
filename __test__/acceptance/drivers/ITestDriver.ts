@@ -1,15 +1,8 @@
+import { Jam, DraftLoop } from "../dsl/jams";
 import { ApiContext } from "./apiDriver";
 import { WebContext } from "./webDriver";
 
 export type Context = ApiContext | WebContext;
-
-export interface Jam {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  loops?: Array<{ audioId: string }>;
-}
 
 export interface ITestDriver {
   auth: {
@@ -29,8 +22,12 @@ export interface ITestDriver {
   jams: {
     create(context: Context, name: string, description: string): Promise<Jam>;
     getAll(context: Context): Promise<Jam[]>;
-    get(context: Context, name: string): Promise<Jam | undefined>;
-    addLoop(context: Context, jamId: string, audioId: string): Promise<void>;
+    get(context: Context, jamId: string): Promise<Jam | undefined>;
+    addLoop(
+      context: Context,
+      jamId: string,
+      draftLoop: DraftLoop,
+    ): Promise<void>;
   };
   audio: {
     upload(

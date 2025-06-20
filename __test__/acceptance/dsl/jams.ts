@@ -1,5 +1,26 @@
-import { Context, ITestDriver, Jam } from "../drivers/ITestDriver";
+import { Context, ITestDriver } from "../drivers/ITestDriver";
 import { expect } from "@playwright/test";
+
+export interface DraftLoop {
+  audio: {
+    id: string;
+  }[];
+}
+
+export interface Loop {
+  audio: {
+    id: string;
+  }[];
+}
+
+export interface Jam {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  loops: Loop[];
+}
+
 export class Jams {
   constructor(
     private readonly driver: ITestDriver,
@@ -23,15 +44,20 @@ export class Jams {
     expect(jam).toBeTruthy();
   }
 
-  async addLoop(jamId: string, audioId: string): Promise<void> {
-    await this.driver.jams.addLoop(this.context, jamId, audioId);
+  async addLoop(jamId: string, draftLoop: DraftLoop): Promise<void> {
+    await this.driver.jams.addLoop(this.context, jamId, draftLoop);
   }
 
-  async containsLoop(jamId: string, audioId: string): Promise<void> {
+  async loopAtPositionIs(
+    jamId: string,
+    position: number,
+    expectedLoop: Loop,
+  ): Promise<void> {
     const jam = await this.driver.jams.get(this.context, jamId);
 
     expect(jam).toBeTruthy();
     expect(jam?.loops).toBeTruthy();
-    expect(jam?.loops?.some((loop) => loop.audioId === audioId)).toBeTruthy();
+
+    expect(jam?.loops[position]).toEqual(expectedLoop);
   }
 }

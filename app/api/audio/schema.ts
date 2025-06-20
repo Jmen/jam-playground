@@ -1,19 +1,14 @@
 import { z } from "zod";
 
-export const addLoopSchema = z.object({
-  audio: z.array(
-    z.object({
-      id: z.string(),
-    }),
-  ),
-});
-
-export const loopSchema = z.object({
-  audio: z.array(
-    z.object({
-      id: z.string(),
-    }),
-  ),
+export const audioFileSchema = z.object({
+  id: z.string(),
+  owner_id: z.string(),
+  created_at: z.string(),
+  file_hash: z.string(),
+  file_path: z.string(),
+  file_name: z.string(),
+  file_size: z.number(),
+  file_type: z.string(),
 });
 
 const badRequest = {
@@ -44,11 +39,27 @@ const internalServerError = {
   },
 };
 
-export const addLoopEndpointSchema = {
+export const getAudioEndpointSchema = {
   requestParams: {
-    path: z.object({
-      id: z.string(),
+    header: z.object({
+      Authorization: z.string(),
+      "X-Refresh-Token": z.string(),
     }),
+  },
+  responses: {
+    "200": {
+      description: "200 OK",
+      content: {
+        "application/json": { schema: z.array(audioFileSchema) },
+      },
+    },
+    "400": badRequest,
+    "500": internalServerError,
+  },
+};
+
+export const uploadAudioEndpointSchema = {
+  requestParams: {
     header: z.object({
       Authorization: z.string(),
       "X-Refresh-Token": z.string(),
@@ -56,14 +67,18 @@ export const addLoopEndpointSchema = {
   },
   requestBody: {
     content: {
-      "application/json": { schema: addLoopSchema },
+      "multipart/form-data": {
+        schema: z.object({
+          file: z.any().describe("Audio file to upload"),
+        }),
+      },
     },
   },
   responses: {
     "200": {
       description: "200 OK",
       content: {
-        "application/json": { schema: loopSchema },
+        "application/json": { schema: audioFileSchema },
       },
     },
     "400": badRequest,

@@ -14,7 +14,7 @@ export async function insertAudio(
   fileType: string,
 ): Promise<Result<AudioFile>> {
   const { data: audioFile, error: dbError } = await supabaseClient
-    .from("audio_files")
+    .from("audio")
     .insert({
       owner_id: user.id,
       file_hash: hash,
@@ -56,7 +56,7 @@ export async function getAudio(
   user: User,
 ): Promise<Result<AudioFile[]>> {
   const { data: audioFiles, error } = await supabaseClient
-    .from("audio_files")
+    .from("audio")
     .select("*")
     .eq("owner_id", user.id)
     .eq("deleted", false)

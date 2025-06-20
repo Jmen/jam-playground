@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorCode, isError, Result } from "../result";
-import { exists, getJam, getJams, getLoops, insertJam } from "./db";
+import { exists, getJams, insertJam } from "./db";
 import { JamId } from "./jamId";
 
 export interface Jam {
@@ -12,12 +12,12 @@ export interface Jam {
   name: string;
   description: string;
   created_at: string;
-}
-
-export interface Loop {
-  id: string;
-  audio_id: string;
-  position: number;
+  db_id?: number;
+  loops?: {
+    audio: {
+      id: string;
+    }[];
+  }[];
 }
 
 export async function getJamsCommand(
@@ -28,56 +28,6 @@ export async function getJamsCommand(
   }
 
   return getJams(supabase);
-}
-
-export async function getJamCommand(id: string): Promise<
-  Result<{
-    id: string;
-    name: string;
-    description: string;
-    created_at: string;
-    loops?: { audioId: string }[];
-  }>
-> {
-  const supabase = await createClient();
-
-  const getJamResult = await getJam(supabase, id);
-
-  if (isError(getJamResult)) {
-    return getJamResult;
-  }
-
-  if (getJamResult.data) {
-    const jam = getJamResult.data;
-
-    const getLoopsResult = await getLoops(supabase, jam.id);
-
-    if (isError(getLoopsResult)) {
-      return getLoopsResult;
-    }
-
-    const loops = getLoopsResult.data;
-
-    return {
-      data: {
-        id: jam.id,
-        name: jam.name,
-        description: jam.description,
-        created_at: jam.created_at,
-        loops: loops?.map((loop) => ({ audioId: loop.audio_id })) || [],
-      },
-    };
-  }
-
-  logger.warn({ id }, "Jam not found");
-
-  return {
-    error: {
-      code: "not_found",
-      message: "Jam not found",
-      type: ErrorCode.CLIENT_ERROR,
-    },
-  };
 }
 
 export async function createJamCommand(

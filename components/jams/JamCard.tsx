@@ -5,7 +5,11 @@ export interface Jam {
   name: string;
   description: string;
   created_at: string;
-  loops?: { audioId: string }[];
+  loops?: {
+    audio: {
+      id: string;
+    }[];
+  }[];
 }
 
 interface JamCardProps {
@@ -53,15 +57,27 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
           <div className="mt-4">
             <h3 className="text-sm font-medium">Loops:</h3>
             <ul className="mt-2 space-y-1">
-              {jam.loops.map((loop, index) => (
-                <li
-                  key={index}
-                  data-testid={`jam-loop-${index}`}
-                  className="text-sm"
-                >
-                  Loop {index + 1}: {loop.audioId}
-                </li>
-              ))}
+              {jam.loops.map((loop, index) => {
+                return (
+                  <li
+                    key={index}
+                    data-testid={`loop-container-${index}`}
+                    className="text-sm"
+                  >
+                    Loop {index + 1}:
+                    {loop.audio.map((audio, audioIndex) => (
+                      <span
+                        key={audioIndex}
+                        data-testid={`audio-${audio.id}`}
+                        className="ml-2"
+                      >
+                        {audio.id}
+                        {audioIndex < loop.audio.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

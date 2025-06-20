@@ -70,7 +70,7 @@ export async function uploadAudioCommand(
   );
 }
 
-export async function getAudioFilesCommand(
+export async function getAudioCommand(
   supabase?: SupabaseClient,
 ): Promise<Result<AudioFile[]>> {
   const supabaseClient = supabase || (await createClient());

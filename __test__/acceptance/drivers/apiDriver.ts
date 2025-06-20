@@ -1,4 +1,6 @@
-import { ITestDriver, Jam } from "./ITestDriver";
+import { ITestDriver } from "./ITestDriver";
+import { DraftLoop, Jam } from "../dsl/jams";
+import { AudioFile } from "@/__test__/acceptance/dsl/audio";
 
 export interface ApiContext {
   accessToken?: string;
@@ -8,11 +10,11 @@ export interface ApiContext {
 export class ApiDriver implements ITestDriver {
   constructor(private readonly baseUrl: string) {}
 
-  async checkResponse(
+  async checkResponse<T = unknown>(
     request: Request,
     response: Response,
     expectedStatusCode: number = 200,
-  ): Promise<any> {
+  ): Promise<T> {
     if (response.status !== expectedStatusCode) {
       console.error("REQUEST:");
       console.error(` method: ${request.method}`);
@@ -26,7 +28,7 @@ export class ApiDriver implements ITestDriver {
       throw new Error(response.statusText);
     }
 
-    return await response.json();
+    return (await response.json()) as T;
   }
 
   auth = {
@@ -39,14 +41,13 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: ApiContext }>(
+        request,
+        response,
+      );
 
-      return {
-        accessToken: body.data.accessToken,
-        refreshToken: body.data.refreshToken,
-      };
+      return body.data;
     },
-
     signIn: async (email: string, password: string): Promise<ApiContext> => {
       const request = new Request(`${this.baseUrl}/api/auth/sign-in`, {
         method: "POST",
@@ -56,14 +57,13 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: ApiContext }>(
+        request,
+        response,
+      );
 
-      return {
-        accessToken: body.data.accessToken,
-        refreshToken: body.data.refreshToken,
-      };
+      return body.data;
     },
-
     signInIsUnauthorized: async (
       email: string,
       password: string,
@@ -78,7 +78,6 @@ export class ApiDriver implements ITestDriver {
 
       await this.checkResponse(request, response, 400);
     },
-
     signOut: async (context: ApiContext): Promise<void> => {
       const request = new Request(`${this.baseUrl}/api/auth/sign-out`, {
         method: "POST",
@@ -92,7 +91,6 @@ export class ApiDriver implements ITestDriver {
 
       await this.checkResponse(request, response);
     },
-
     resetPassword: async (
       context: ApiContext,
       newPassword: string,
@@ -145,7 +143,10 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: { username: string } }>(
+        request,
+        response,
+      );
 
       return body.data;
     },
@@ -169,7 +170,7 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: Jam }>(request, response);
 
       return body.data;
     },
@@ -184,7 +185,7 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: Jam[] }>(request, response);
 
       return body.data;
     },
@@ -202,27 +203,14 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: Jam }>(request, response);
 
-      if (body.data) {
-        return {
-          id: body.data.id,
-          name: body.data.name,
-          description: body.data.description,
-          createdAt: body.data.created_at,
-          loops:
-            body.data.loops?.map((loop: any) => ({
-              audioId: loop.audio_id,
-            })) || [],
-        };
-      }
-
-      return undefined;
+      return body.data;
     },
     addLoop: async (
       context: ApiContext,
       jamId: string,
-      audioId: string,
+      draftLoop: DraftLoop,
     ): Promise<void> => {
       const request = new Request(`${this.baseUrl}/api/jams/${jamId}/loops`, {
         method: "POST",
@@ -231,7 +219,7 @@ export class ApiDriver implements ITestDriver {
           "X-Refresh-Token": context.refreshToken || "",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ audioId }),
+        body: JSON.stringify(draftLoop),
       });
 
       const response = await fetch(request);
@@ -245,7 +233,8 @@ export class ApiDriver implements ITestDriver {
       context: ApiContext,
       path: string,
       type: string,
-    ): Promise<{ id: string }> => {
+    ): Promise<AudioFile> => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const fs = require("fs");
       const audioData = fs.readFileSync(path);
       const fileName = path.split("/").pop();
@@ -265,7 +254,10 @@ export class ApiDriver implements ITestDriver {
 
       const response = await fetch(request);
 
-      const body = await this.checkResponse(request, response);
+      const body = await this.checkResponse<{ data: AudioFile }>(
+        request,
+        response,
+      );
 
       return body.data;
     },

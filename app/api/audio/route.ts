@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { ApiHandlerBuilder, Context } from "../apiHandlerBuilder";
 import { createResponse } from "@/app/api/result";
-import { getAudioFilesCommand, uploadAudioCommand } from "./commands";
+import { getAudioCommand, uploadAudioCommand } from "./commands";
 import { badRequest } from "../apiResponse";
 
 export const POST = new ApiHandlerBuilder()
@@ -34,7 +34,7 @@ export const GET = new ApiHandlerBuilder()
   .build(async (req: NextRequest, context: Context) => {
     const supabase = context.supabase;
 
-    const result = await getAudioFilesCommand(supabase);
+    const result = await getAudioCommand(supabase);
 
     return createResponse(result, {}, "get audio files");
   });

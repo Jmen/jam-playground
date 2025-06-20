@@ -4,11 +4,7 @@ import {
   getProfileEndpointSchema,
   postProfileEndpointSchema,
 } from "./my/profile/schema";
-import {
-  createJamEndpointSchema,
-  getJamEndpointSchema,
-  getJamsEndpointSchema,
-} from "./jams/schema";
+import { createJamEndpointSchema, getJamsEndpointSchema } from "./jams/schema";
 import {
   registerEndpointSchema,
   signInEndpointSchema,
@@ -16,6 +12,12 @@ import {
   forgotPasswordEndpointSchema,
   resetPasswordEndpointSchema,
 } from "./auth/schema";
+import { getJamEndpointSchema } from "./jams/[id]/schema";
+import { addLoopEndpointSchema } from "./jams/[id]/loops/schema";
+import {
+  getAudioEndpointSchema,
+  uploadAudioEndpointSchema,
+} from "./audio/schema";
 
 export const document = createDocument({
   openapi: "3.1.0",
@@ -45,6 +47,13 @@ export const document = createDocument({
     },
     "/api/jams/{id}": {
       get: getJamEndpointSchema,
+    },
+    "/api/jams/{id}/loops": {
+      post: addLoopEndpointSchema,
+    },
+    "/api/audio": {
+      get: getAudioEndpointSchema,
+      post: uploadAudioEndpointSchema,
     },
     "/api/my/profile": {
       get: getProfileEndpointSchema,

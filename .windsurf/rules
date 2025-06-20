@@ -22,3 +22,35 @@
 
 - API routes are stored in /app/api
 - Routes should only handle http requests and delegate domain logic to Commands
+
+## Testing
+
+The solution is mainly tested using Acceptance Test through the public interfaces such as the Web UI and the API
+
+This is so that it is easy to refactor later without changing the tests
+
+There are 3 layers
+
+1. Specifications
+
+- These are journeys though each domain of the solution
+- They are stored in /**test**/acceptance/tests
+
+2. Domain Specific Language (DSL)
+
+- This is a layer of objects which represents the interactions that can be performed on the application, and used by the tests to build scenarios
+- They are stored in /**test**/acceptance/dsl
+
+3. Drivers
+
+- This are the layer which actually talks to the real system under test and converts the DSL interactions into the protocol required.
+- They are stored in /**test**/acceptance/drivers
+
+- There are two types of drivers, Web UI with Playwright, and an API driver with Fetch
+
+- The drivers are configured in /**test**/acceptance/config
+
+To run the tests, use the following commands:
+
+npm run test:acceptance:api - run the tests using the API driver
+npm run test:acceptance:web - run the tests using the Web UI driver

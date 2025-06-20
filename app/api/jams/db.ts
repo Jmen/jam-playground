@@ -1,7 +1,7 @@
 import { logger } from "@/lib/logger";
 import { ErrorCode, Result } from "../result";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Jam, Loop } from "./commands";
+import { Jam } from "./commands";
 
 export async function exists(
   supabase: SupabaseClient,
@@ -99,62 +99,5 @@ export async function getJams(
         description: jam.description,
         created_at: jam.created_at,
       })) || [],
-  };
-}
-
-export async function getJam(
-  supabase: SupabaseClient,
-  id: string,
-): Promise<Result<Jam>> {
-  const { data: jams, error } = await supabase
-    .from("jams")
-    .select("*")
-    .eq("human_readable_id", id)
-    .limit(1);
-
-  if (error) {
-    logger.error({ error }, "Failed to get jam");
-    return {
-      error: {
-        code: "internal_server_error",
-        message: "Failed to get jam",
-        type: ErrorCode.SERVER_ERROR,
-      },
-    };
-  }
-
-  return {
-    data: {
-      id: jams?.[0].human_readable_id,
-      name: jams?.[0].name,
-      description: jams?.[0].description,
-      created_at: jams?.[0].created_at,
-    },
-  };
-}
-
-export async function getLoops(
-  supabase: SupabaseClient,
-  jamId: string,
-): Promise<Result<Loop[]>> {
-  const { data: loops, error } = await supabase
-    .from("jam_loops")
-    .select("id, audio_id, position, jams (id, human_readable_id)")
-    .eq("jams.human_readable_id", jamId)
-    .order("position", { ascending: true });
-
-  if (error) {
-    logger.error({ error }, "Failed to get jam loops");
-    return {
-      error: {
-        code: "internal_server_error",
-        message: "Failed to get jam loops",
-        type: ErrorCode.SERVER_ERROR,
-      },
-    };
-  }
-
-  return {
-    data: loops,
   };
 }

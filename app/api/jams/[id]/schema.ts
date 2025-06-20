@@ -1,21 +1,5 @@
 import { z } from "zod";
 
-export const addLoopSchema = z.object({
-  audio: z.array(
-    z.object({
-      id: z.string(),
-    }),
-  ),
-});
-
-export const loopSchema = z.object({
-  audio: z.array(
-    z.object({
-      id: z.string(),
-    }),
-  ),
-});
-
 const badRequest = {
   description: "400 Bad Request",
   content: {
@@ -44,7 +28,23 @@ const internalServerError = {
   },
 };
 
-export const addLoopEndpointSchema = {
+export const getJamSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  created_at: z.string(),
+  loops: z.array(
+    z.object({
+      audio: z.array(
+        z.object({
+          id: z.string(),
+        }),
+      ),
+    }),
+  ),
+});
+
+export const getJamEndpointSchema = {
   requestParams: {
     path: z.object({
       id: z.string(),
@@ -54,16 +54,11 @@ export const addLoopEndpointSchema = {
       "X-Refresh-Token": z.string(),
     }),
   },
-  requestBody: {
-    content: {
-      "application/json": { schema: addLoopSchema },
-    },
-  },
   responses: {
     "200": {
       description: "200 OK",
       content: {
-        "application/json": { schema: loopSchema },
+        "application/json": { schema: getJamSchema },
       },
     },
     "400": badRequest,

@@ -15,7 +15,7 @@ export const POST = new ApiHandlerBuilder()
 
     const body = getTypedBody(context, addLoopSchema);
 
-    const result = await addLoopToJamCommand(id, body.audioId, supabase);
+    const result = await addLoopToJamCommand(id, body, supabase);
 
     return createResponse(result, body, "add loop to jam");
   });
