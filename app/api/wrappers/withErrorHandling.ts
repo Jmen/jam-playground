@@ -8,7 +8,7 @@ export function withErrorHandling(handler: Handler) {
     try {
       return await handler(req, context);
     } catch (error) {
-      logger.error({ error }, "Unhandled API error");
+      logger.error(error, "Unhandled API error");
       return internalServerError();
     }
   };

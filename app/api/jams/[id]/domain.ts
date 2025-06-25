@@ -1,0 +1,87 @@
+import { ErrorCode, Result } from "../../result";
+
+interface Loop {
+  audio: Audio[];
+}
+
+export interface Audio {
+  id: string;
+  file_path: string;
+}
+
+export interface SignedUrls {
+  id: string;
+  url: string;
+}
+
+export interface JamView {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  loops: LoopView[];
+}
+
+export interface LoopView {
+  audio: {
+    id: string;
+    url: string;
+  }[];
+}
+
+export class Jam {
+  constructor(
+    private id: string,
+    private name: string,
+    private description: string,
+    private created_at: string,
+    private loops: Loop[],
+  ) {}
+
+  audio(): Audio[] {
+    return this.loops.flatMap((loop) => loop.audio);
+  }
+
+  viewWithAudioUrls(audioUrls: SignedUrls[]): Result<JamView> {
+    const updatedLoops: LoopView[] = [];
+
+    for (const loop of this.loops) {
+      const updatedLoop: LoopView = {
+        audio: [],
+      };
+
+      for (const audio of loop.audio) {
+        const audioUrl = audioUrls.find((audioUrl) => audioUrl.id === audio.id);
+
+        if (!audioUrl) {
+          return {
+            error: {
+              code: "audio_url_not_found",
+              message: "Audio URL not found",
+              type: ErrorCode.CLIENT_ERROR,
+            },
+          };
+        }
+
+        const updatedAudio = {
+          id: audio.id,
+          url: audioUrl.url,
+        };
+
+        updatedLoop.audio.push(updatedAudio);
+      }
+
+      updatedLoops.push(updatedLoop);
+    }
+
+    return {
+      data: {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        created_at: this.created_at,
+        loops: updatedLoops,
+      },
+    };
+  }
+}

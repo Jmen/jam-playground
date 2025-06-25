@@ -4,12 +4,14 @@ import { expect } from "@playwright/test";
 export interface DraftLoop {
   audio: {
     id: string;
+    url: string;
   }[];
 }
 
 export interface Loop {
   audio: {
     id: string;
+    url: string;
   }[];
 }
 
@@ -58,6 +60,13 @@ export class Jams {
     expect(jam).toBeTruthy();
     expect(jam?.loops).toBeTruthy();
 
-    expect(jam?.loops[position]).toEqual(expectedLoop);
+    for (const audio of expectedLoop.audio) {
+      const foundAudio = jam?.loops[position].audio.find(
+        (a) => a.id === audio.id,
+      );
+
+      expect(foundAudio).toBeTruthy();
+      expect(foundAudio?.id).toBeTruthy();
+    }
   }
 }

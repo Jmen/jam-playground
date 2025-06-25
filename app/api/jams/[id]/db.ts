@@ -1,20 +1,7 @@
 import { ErrorCode, Result } from "@/app/api/result";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
-
-interface Jam {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  loops: Loop[];
-}
-
-interface Loop {
-  audio: {
-    id: string;
-  }[];
-}
+import { Jam } from "./domain";
 
 export async function getJam(
   supabase: SupabaseClient,
@@ -30,7 +17,7 @@ export async function getJam(
       created_at,
       loops(id, created_at, 
         loop_audio(audio_id, position, deleted, 
-          audio(id, deleted)
+          audio(id, file_path, deleted)
         )
       )
     `,
@@ -66,18 +53,19 @@ export async function getJam(
   const jam = jams[0];
 
   const loops = jam.loops.map((loop) => ({
-    audio: loop.loop_audio.map((assoc: { audio_id: string }) => ({
-      id: assoc.audio_id,
+    audio: loop.loop_audio.map((loopAudio) => ({
+      id: loopAudio.audio_id,
+      file_path: loopAudio.audio.file_path, // not sure why this is showing an error?
     })),
   }));
 
   return {
-    data: {
-      id: jam.human_readable_id,
-      name: jam.name,
-      description: jam.description,
-      created_at: jam.created_at,
+    data: new Jam(
+      jam.human_readable_id,
+      jam.name,
+      jam.description,
+      jam.created_at,
       loops,
-    },
+    ),
   };
 }
