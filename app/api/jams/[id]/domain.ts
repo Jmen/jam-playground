@@ -1,6 +1,8 @@
 import { ErrorCode, Result } from "../../result";
 
 interface Loop {
+  id: string;
+  created_at: string;
   audio: Audio[];
 }
 
@@ -25,6 +27,8 @@ export interface JamView {
 }
 
 export interface LoopView {
+  id: string;
+  created_at: string;
   audio: {
     id: string;
     url: string;
@@ -50,6 +54,8 @@ export class Jam {
 
     for (const loop of this.loops) {
       const updatedLoop: LoopView = {
+        id: loop.id,
+        created_at: loop.created_at,
         audio: [],
       };
 

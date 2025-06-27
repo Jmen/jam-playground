@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import Waveform from './Waveform';
 import { useAudioContext } from "./AudioContext";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "@/lib/time";
 import type WaveSurfer from 'wavesurfer.js';
 
 interface AudioItem {
@@ -19,9 +20,10 @@ interface LoopPlayerProps {
   audioItems: AudioItem[];
   loopIndex: number;
   loopId: string;
+  createdAt: string;
 }
 
-export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
+export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPlayerProps) {
   const { 
     playingLoopId, 
     setPlayingLoopId, 
@@ -277,8 +279,14 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
   return (
     <div className={cn("p-4 border rounded-md", playingLoopId === loopId ? "border-primary" : "border-border")}>
       <div className="flex items-center justify-between">
-        <h3 className="font-bold">Loop {loopIndex + 1}</h3>
         <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
+            <h3 className="font-bold">Loop {loopIndex + 1}</h3>
+            <div className="flex items-baseline space-x-2 text-xs text-muted-foreground">
+              <p>{new Date(createdAt).toLocaleString()}</p>
+              <p>({formatDistanceToNow(createdAt)})</p>
+            </div>
+          </div>
           <Button
             variant="ghost"
             size="sm"

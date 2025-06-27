@@ -8,6 +8,8 @@ export interface Jam {
   description: string;
   created_at: string;
   loops?: {
+    id: string;
+    created_at: string;
     audio: {
       id: string;
       url?: string;
@@ -76,7 +78,8 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
                             !!audio.url,
                         )}
                         loopIndex={index}
-                        loopId={`${jam.id}-loop-${index}`}
+                        loopId={loop.id}
+                        createdAt={loop.created_at}
                       />
                     )}
                   </li>

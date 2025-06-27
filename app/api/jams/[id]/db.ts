@@ -52,20 +52,20 @@ export async function getJam(
 
   const jam = jams[0];
 
-  const loops = jam.loops.map((loop) => ({
-    audio: loop.loop_audio.map((loopAudio) => ({
-      id: loopAudio.audio_id,
-      file_path: loopAudio.audio.file_path, // not sure why this is showing an error?
-    })),
-  }));
-
   return {
     data: new Jam(
       jam.human_readable_id,
       jam.name,
       jam.description,
       jam.created_at,
-      loops,
+      jam.loops.map((loop: any) => ({
+        id: loop.id,
+        created_at: loop.created_at,
+        audio: loop.loop_audio.map((loop_audio: any) => ({
+          id: loop_audio.audio.id,
+          file_path: loop_audio.audio.file_path,
+        })),
+      })),
     ),
   };
 }
