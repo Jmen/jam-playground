@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoopPlayer } from "@/components/audio/LoopPlayer";
+import { AudioProvider } from "@/components/audio/AudioContext";
 
 export interface Jam {
   id: string;
@@ -8,6 +10,8 @@ export interface Jam {
   loops?: {
     audio: {
       id: string;
+      url?: string;
+      file_name?: string;
     }[];
   }[];
 }
@@ -28,12 +32,13 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
   };
 
   return (
-    <Card
-      data-id={jam.id}
-      role={isListItem ? "listitem" : undefined}
-      data-testid="jam-card"
-      className={className}
-    >
+    <AudioProvider>
+      <Card
+        data-id={jam.id}
+        role={isListItem ? "listitem" : undefined}
+        data-testid="jam-card"
+        className={className}
+      >
       <CardHeader>
         <CardTitle>
           <span data-testid="jam-name">Name: {jam.name}</span>
@@ -62,19 +67,18 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
                   <li
                     key={index}
                     data-testid={`loop-container-${index}`}
-                    className="text-sm"
+                    className="text-sm border rounded-md p-3 mb-4"
                   >
-                    Loop {index + 1}:
-                    {loop.audio.map((audio, audioIndex) => (
-                      <span
-                        key={audioIndex}
-                        data-testid={`audio-${audio.id}`}
-                        className="ml-2"
-                      >
-                        {audio.id}
-                        {audioIndex < loop.audio.length - 1 ? ", " : ""}
-                      </span>
-                    ))}
+                    {loop.audio.some(audio => audio.url) && (
+                      <LoopPlayer
+                        audioItems={loop.audio.filter(
+                          (audio): audio is typeof audio & { url: string } =>
+                            !!audio.url,
+                        )}
+                        loopIndex={index}
+                        loopId={`${jam.id}-loop-${index}`}
+                      />
+                    )}
                   </li>
                 );
               })}
@@ -83,5 +87,6 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
         )}
       </CardContent>
     </Card>
+    </AudioProvider>
   );
 }

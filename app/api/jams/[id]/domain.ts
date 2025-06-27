@@ -7,11 +7,13 @@ interface Loop {
 export interface Audio {
   id: string;
   file_path: string;
+  file_name?: string;
 }
 
 export interface SignedUrls {
   id: string;
   url: string;
+  file_name?: string;
 }
 
 export interface JamView {
@@ -26,6 +28,7 @@ export interface LoopView {
   audio: {
     id: string;
     url: string;
+    file_name?: string;
   }[];
 }
 
@@ -66,6 +69,7 @@ export class Jam {
         const updatedAudio = {
           id: audio.id,
           url: audioUrl.url,
+          file_name: audioUrl.file_name || audio.file_name,
         };
 
         updatedLoop.audio.push(updatedAudio);

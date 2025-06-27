@@ -16,7 +16,15 @@ export async function getSignedUrls(
     for (const audio of inputAudio) {
       const { data, error } = await supabaseClient.storage
         .from("audio-files")
-        .createSignedUrl(audio.file_path, ONE_HOUR);
+        .createSignedUrl(audio.file_path, ONE_HOUR, {
+          download: true,
+        });
+        
+      const { data: fileData } = await supabaseClient
+        .from("audio")
+        .select("file_name")
+        .eq("id", audio.id)
+        .single();
 
       if (error || !data) {
         return {
@@ -31,6 +39,7 @@ export async function getSignedUrls(
       urls.push({
         id: audio.id,
         url: data.signedUrl,
+        file_name: fileData?.file_name || undefined,
       });
     }
 
