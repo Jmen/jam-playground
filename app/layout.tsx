@@ -19,7 +19,7 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body>
         <div className="min-h-screen flex flex-col">
           <NavigationBar user={user} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useWavesurfer } from '@wavesurfer/react';
 import type WaveSurfer from 'wavesurfer.js';
 
@@ -11,17 +11,36 @@ interface WaveformProps {
 
 const Waveform: React.FC<WaveformProps> = ({ audioUrl, onReady }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [resolvedColors, setResolvedColors] = useState({
+    waveColor: '#a1a1aa',
+    progressColor: '#f43f5e',
+    cursorColor: '#18181b',
+  });
+
+  useEffect(() => {
+    // This effect runs once on mount to resolve CSS variables.
+    const style = getComputedStyle(document.documentElement);
+    const mutedForeground = style.getPropertyValue('--muted-foreground').trim();
+    const accent = style.getPropertyValue('--accent').trim();
+    const foreground = style.getPropertyValue('--foreground').trim();
+
+    setResolvedColors({
+      waveColor: `hsl(${mutedForeground})`,
+      progressColor: `hsl(${accent})`,
+      cursorColor: `hsl(${foreground})`,
+    });
+  }, []);
 
   const { wavesurfer, isReady } = useWavesurfer({
     container: containerRef,
     url: audioUrl,
-    waveColor: '#a1a1aa', // zinc-400
-    progressColor: '#f43f5e', // rose-500
+    waveColor: resolvedColors.waveColor,
+    progressColor: resolvedColors.progressColor,
     height: 80,
     barWidth: 2,
     barGap: 1,
     barRadius: 2,
-    cursorColor: '#18181b',
+    cursorColor: resolvedColors.cursorColor,
     cursorWidth: 2,
     interact: false,
   });

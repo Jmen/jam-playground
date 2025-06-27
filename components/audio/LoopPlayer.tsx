@@ -275,7 +275,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
   };
 
   return (
-    <div className={cn("p-4 border rounded-md", playingLoopId === loopId ? "border-rose-500" : "border-gray-200")}>
+    <div className={cn("p-4 border rounded-md", playingLoopId === loopId ? "border-primary" : "border-border")}>
       <div className="flex items-center justify-between">
         <h3 className="font-bold">Loop {loopIndex + 1}</h3>
         <div className="flex items-center space-x-2">
@@ -313,7 +313,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
         <div className="flex space-x-2">
           {audioItems.map((audio) => (
             <div key={audio.id} data-testid={`audio-${audio.id}`} className="flex-shrink-0 w-24 flex flex-col">
-              <div className={cn("h-16 border-4 rounded-md flex items-center justify-center bg-white p-1 shadow-md overflow-hidden", mutedTracks.get(audio.id) ? "border-gray-400" : "border-gray-700", soloedTracks.get(audio.id) && "border-green-500")}>
+              <div className={cn("h-16 border-4 rounded-md flex items-center justify-center bg-card p-1 shadow-md overflow-hidden", mutedTracks.get(audio.id) ? "border-muted" : "border-border", soloedTracks.get(audio.id) && "border-primary")}>
                 {audio.url ? (
                   <Waveform audioUrl={audio.url} onReady={(ws) => handleWaveformReady(audio.id, ws)} />
                 ) : (
@@ -323,8 +323,8 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
                 )}
               </div>
               <div className="flex justify-center mt-1 space-x-1">
-                <button onClick={() => toggleTrackMute(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", mutedTracks.get(audio.id) ? "bg-yellow-400 border-yellow-600 text-white" : "bg-gray-200 border-gray-400")} title="Mute">M</button>
-                <button onClick={() => toggleTrackSolo(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", soloedTracks.get(audio.id) ? "bg-green-500 border-green-700 text-white" : "bg-gray-200 border-gray-400")} title="Solo">S</button>
+                <button onClick={() => toggleTrackMute(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", mutedTracks.get(audio.id) ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground")} title="Mute">M</button>
+                <button onClick={() => toggleTrackSolo(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", soloedTracks.get(audio.id) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")} title="Solo">S</button>
               </div>
               <div className="text-center text-xs text-gray-500 mt-1 h-4">
                 {trackDurations.has(audio.id) && `${trackDurations.get(audio.id)?.toFixed(2)}s`}
@@ -345,7 +345,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
           ))}
           {audioItems.length < 8 && Array.from({ length: 8 - audioItems.length }).map((_, i) => (
             <div key={`empty-${i}`} className="flex-shrink-0 w-24 flex flex-col">
-              <div className="h-16 border border-dashed rounded-md bg-gray-50"></div>
+              <div className="h-16 border border-dashed rounded-md bg-secondary"></div>
               <div className="h-7"></div>
             </div>
           ))}
