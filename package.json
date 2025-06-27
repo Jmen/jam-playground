@@ -33,6 +33,7 @@
     "@radix-ui/react-tabs": "^1.1.2",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.46.2",
+    "@wavesurfer/react": "^1.0.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
@@ -45,6 +46,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "unique-names-generator": "^4.7.1",
+    "wavesurfer.js": "^7.9.8",
     "zod": "^3.25.56",
     "zod-openapi": "^4.2.4"
   },

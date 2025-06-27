@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useRef, useState, useEffect, useCallback } from "react";
+import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import Waveform from './Waveform';
 import { useAudioContext } from "./AudioContext";
 import { cn } from "@/lib/utils";
+import type WaveSurfer from 'wavesurfer.js';
 
 interface AudioItem {
   id: string;
@@ -29,13 +31,9 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
   } = useAudioContext();
   
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false); // Master mute for the whole loop
-  const [mutedTracks, setMutedTracks] = useState<Map<string, boolean>>(
-    new Map(),
-  );
-  const [soloedTracks, setSoloedTracks] = useState<Map<string, boolean>>(
-    new Map(),
-  );
+  const [isMuted, setIsMuted] = useState(false);
+  const [mutedTracks, setMutedTracks] = useState<Map<string, boolean>>(new Map());
+  const [soloedTracks, setSoloedTracks] = useState<Map<string, boolean>>(new Map());
   const [trackVolumes, setTrackVolumes] = useState<Map<string, number>>(
     new Map(audioItems.map(item => [item.id, 1])),
   );
@@ -47,9 +45,34 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
   const audioSourcesRef = useRef<Map<string, AudioBufferSourceNode>>(new Map());
   const audioBuffersRef = useRef<Map<string, AudioBuffer>>(new Map());
   const loadingRef = useRef<boolean>(false);
+  const wavesurferInstancesRef = useRef<Map<string, WaveSurfer>>(new Map());
+  const animationFrameIdRef = useRef<number | null>(null);
+  const playbackStartTimeRef = useRef(0);
+
+  const stopAllAudio = useCallback(() => {
+    console.log('stopAllAudio triggered');
+    audioSourcesRef.current.forEach(source => {
+      try {
+        source.stop();
+      } catch (e) {
+        console.warn('Error stopping audio source:', e);
+      }
+    });
+    audioSourcesRef.current.clear();
+
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
+
+    wavesurferInstancesRef.current.forEach(ws => {
+      ws.seekTo(0);
+    });
+
+    setIsPlaying(false);
+  }, []);
 
   useEffect(() => {
-    // Initialize AudioContext and GainNode
     const initAudio = () => {
       const context = getAudioContext();
       const masterGain = context.createGain();
@@ -58,7 +81,6 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
       audioContextRef.current = context;
       masterGainNodeRef.current = masterGain;
 
-      // Create gain nodes for each track
       audioItems.forEach(item => {
         if (item.url) {
           const trackGain = context.createGain();
@@ -69,217 +91,19 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
     };
     
     initAudio();
-    
-    // Register stop function with the context
     registerStopFunction(loopId, stopAllAudio);
 
     return () => {
       stopAllAudio();
       unregisterStopFunction(loopId);
-      
-      // Clean up gain node connection
-      // Clean up gain node connections
       trackGainNodesRef.current.forEach(gain => gain.disconnect());
       if (masterGainNodeRef.current) {
         masterGainNodeRef.current.disconnect();
       }
     };
-  }, [loopId, registerStopFunction, unregisterStopFunction, getAudioContext]);
+  }, [loopId, registerStopFunction, unregisterStopFunction, getAudioContext, audioItems, stopAllAudio]);
 
-  // Load all audio files
-  const loadAudioFiles = async () => {
-    const context = audioContextRef.current;
-
-    if (!context || loadingRef.current) return;
-    
-    loadingRef.current = true;
-    setIsLoading(true);
-    
-    try {
-      // Clear existing buffers to ensure fresh loading
-      audioBuffersRef.current.clear();
-      
-      const loadPromises = audioItems.map(async (item) => {
-        // Skip if URL is not defined
-        if (!item.url) return;
-        
-        try {
-          console.log(`Loading audio ${item.id} from ${item.url}`);
-          
-          // Use a direct fetch with cache control
-          const response = await fetch(item.url, {
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
-          }
-          
-          const arrayBuffer = await response.arrayBuffer();
-          
-          if (arrayBuffer.byteLength === 0) {
-            throw new Error('Received empty audio file');
-          }
-          
-          console.log(`Decoding audio ${item.id}, size: ${arrayBuffer.byteLength} bytes`);
-          
-          // Use a promise to ensure proper decoding
-          const audioBuffer = await new Promise<AudioBuffer>((resolve, reject) => {
-            context.decodeAudioData(
-              arrayBuffer,
-              buffer => resolve(buffer),
-              error => reject(new Error(`Decoding failed: ${error}`))
-            );
-          });
-          
-          console.log(`Audio ${item.id} decoded successfully, duration: ${audioBuffer.duration}s, channels: ${audioBuffer.numberOfChannels}`);
-          
-          if (audioBuffer.duration < 0.1) {
-            throw new Error('Audio file too short or corrupted');
-          }
-          
-          audioBuffersRef.current.set(item.id, audioBuffer);
-        } catch (error) {
-          console.error(`Error loading audio ${item.id}:`, error);
-        }
-      });
-      
-      await Promise.all(loadPromises);
-    } finally {
-      loadingRef.current = false;
-      setIsLoading(false);
-    }
-  };
-
-  // Helper function to play a single audio buffer
-  const playAudioBuffer = (id: string, buffer: AudioBuffer) => {
-    const context = audioContextRef.current;
-    const trackGainNode = trackGainNodesRef.current.get(id);
-
-    if (!context || !trackGainNode) {
-      console.error(`No gain node for track ${id}`);
-      return;
-    }
-
-    // Stop any existing source for this ID
-    if (audioSourcesRef.current.has(id)) {
-      try {
-        audioSourcesRef.current.get(id)?.stop();
-      } catch (e) {
-        // ignore if already stopped
-      }
-    }
-
-    const source = context.createBufferSource();
-    source.buffer = buffer;
-    source.connect(trackGainNode); // Connect to the track's specific gain node
-    source.loop = true; // Enable native looping
-
-    source.onended = () => {
-      audioSourcesRef.current.delete(id);
-    };
-
-    try {
-      source.start(0);
-      audioSourcesRef.current.set(id, source);
-    } catch (err) {
-      console.error(`Error starting audio source for ${id}:`, err);
-    }
-  };
-  
-  const playAllAudio = () => {
-    const context = audioContextRef.current;
-    const mainGainNode = masterGainNodeRef.current;
-
-    if (!context || !mainGainNode) return;
-
-    // Ensure all track gains are updated before playing
-    trackGainNodesRef.current.forEach((_, trackId) => {
-      updateTrackGain(trackId);
-    });
-
-    // Stop any existing sources before starting new ones
-    stopAllAudio();
-
-    console.log('playAllAudio triggered');
-
-    audioBuffersRef.current.forEach((buffer, id) => {
-      playAudioBuffer(id, buffer);
-    });
-
-    setIsPlaying(true);
-  };
-
-  const stopAllAudio = () => {
-    audioSourcesRef.current.forEach((source) => {
-      try {
-        // Handle both AudioBufferSourceNode and our custom audio element wrapper
-        if (typeof source.stop === 'function') {
-          source.stop();
-        }
-        if (typeof source.disconnect === 'function') {
-          source.disconnect();
-        }
-      } catch (e) {
-        // Ignore errors from already stopped sources
-        console.warn('Error stopping audio source:', e);
-      }
-    });
-    audioSourcesRef.current.clear();
-    
-    // Update playing state
-    setIsPlaying(false);
-  };
-
-  const togglePlayPause = async () => {
-    const context = audioContextRef.current;
-    if (!context) return;
-    
-    // If audio context is suspended (browser policy), resume it
-    if (context.state === 'suspended') {
-      await context.resume();
-    }
-    
-    if (isPlaying) {
-      stopAllAudio();
-      setPlayingLoopId(null);
-    } else {
-      // If another loop is playing, stop it first
-      if (playingLoopId && playingLoopId !== loopId) {
-        // The context will handle stopping the other loop
-        setPlayingLoopId(loopId);
-      } else {
-        setPlayingLoopId(loopId);
-      }
-      
-      // Load audio files if not already loaded
-      if (audioBuffersRef.current.size < audioItems.length) {
-        await loadAudioFiles();
-      }
-      
-      // Start looping playback
-      playAllAudio();
-      setIsPlaying(true);
-    }
-  };
-
-  const toggleMute = () => {
-    const masterGain = masterGainNodeRef.current;
-    if (!masterGain) return;
-
-    const newMutedState = !isMuted;
-    masterGain.gain.setValueAtTime(
-      newMutedState ? 0 : 1,
-      audioContextRef.current?.currentTime || 0,
-    );
-    setIsMuted(newMutedState);
-  };
-
-  const updateTrackGain = (trackId: string) => {
+  const updateTrackGain = useCallback((trackId: string) => {
     const trackGainNode = trackGainNodesRef.current.get(trackId);
     if (!trackGainNode) return;
 
@@ -299,6 +123,121 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
       targetGain,
       audioContextRef.current?.currentTime || 0,
     );
+  }, [mutedTracks, soloedTracks, trackVolumes]);
+
+  const playAllAudio = useCallback(() => {
+    const context = audioContextRef.current;
+    if (!context) return;
+
+    playbackStartTimeRef.current = context.currentTime;
+    stopAllAudio(); // Resets sources
+
+    audioBuffersRef.current.forEach((buffer, id) => {
+      const trackGainNode = trackGainNodesRef.current.get(id);
+      if (!context || !trackGainNode) return;
+
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(trackGainNode);
+      audioSourcesRef.current.set(id, source);
+
+      source.start(0);
+    });
+
+    setIsPlaying(true);
+
+    const updateCursors = () => {
+      if (!audioContextRef.current) return;
+      const now = audioContextRef.current.currentTime;
+      const elapsedTime = now - playbackStartTimeRef.current;
+
+      wavesurferInstancesRef.current.forEach((ws) => {
+        const duration = ws.getDuration();
+        if (duration > 0) {
+          const progress = (elapsedTime % duration) / duration;
+          ws.seekTo(progress);
+        }
+      });
+
+      animationFrameIdRef.current = requestAnimationFrame(updateCursors);
+    };
+
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+    }
+    animationFrameIdRef.current = requestAnimationFrame(updateCursors);
+  }, [stopAllAudio]);
+
+  const loadAudioFiles = useCallback(async () => {
+    const context = audioContextRef.current;
+    if (!context || loadingRef.current) return;
+    
+    loadingRef.current = true;
+    setIsLoading(true);
+    
+    try {
+      audioBuffersRef.current.clear();
+      const loadPromises = audioItems.map(async (item) => {
+        if (!item.url) return;
+        try {
+          const response = await fetch(item.url, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+          const arrayBuffer = await response.arrayBuffer();
+          const decodedBuffer = await context.decodeAudioData(arrayBuffer);
+          audioBuffersRef.current.set(item.id, decodedBuffer);
+        } catch (error) {
+          console.error(`Error loading audio for track ${item.id}:`, error);
+        }
+      });
+      await Promise.all(loadPromises);
+    } catch (error) {
+      console.error("Error in loadAudioFiles:", error);
+    } finally {
+      loadingRef.current = false;
+      setIsLoading(false);
+    }
+  }, [audioItems]);
+
+  const startPlayback = useCallback(async () => {
+    if (audioBuffersRef.current.size < audioItems.filter(i => i.url).length) {
+      await loadAudioFiles();
+    }
+    playAllAudio();
+  }, [loadAudioFiles, playAllAudio, audioItems]);
+
+  const togglePlayPause = useCallback(async () => {
+    const context = audioContextRef.current;
+    if (!context) return;
+
+    if (context.state === 'suspended') await context.resume();
+
+    if (isPlaying) {
+      stopAllAudio();
+      setPlayingLoopId(null);
+    } else {
+      setPlayingLoopId(loopId);
+      await startPlayback();
+    }
+  }, [isPlaying, loopId, setPlayingLoopId, startPlayback, stopAllAudio]);
+
+  useEffect(() => {
+    if (playingLoopId === loopId && !isPlaying) {
+      startPlayback();
+    } else if (playingLoopId !== loopId && isPlaying) {
+      stopAllAudio();
+    }
+  }, [playingLoopId, loopId, isPlaying, startPlayback, stopAllAudio]);
+
+  const toggleMute = () => {
+    const newMuteState = !isMuted;
+    setIsMuted(newMuteState);
+    if (masterGainNodeRef.current) {
+      masterGainNodeRef.current.gain.setValueAtTime(
+        newMuteState ? 0 : 1,
+        audioContextRef.current?.currentTime || 0,
+      );
+    }
   };
 
   const handleVolumeChange = (trackId: string, value: number[]) => {
@@ -307,86 +246,53 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
     updateTrackGain(trackId);
   };
 
-  useEffect(() => {
-    trackGainNodesRef.current.forEach((_, trackId) => {
-      updateTrackGain(trackId);
-    });
-  }, [mutedTracks, soloedTracks]);
+  const handleWaveformReady = useCallback((trackId: string, ws: WaveSurfer) => {
+    wavesurferInstancesRef.current.set(trackId, ws);
+  }, []);
 
   const toggleTrackMute = (trackId: string) => {
-    setMutedTracks(prev => {
-      const newMap = new Map(prev);
-      newMap.set(trackId, !newMap.get(trackId));
-      return newMap;
-    });
+    const newMutedTracks = new Map(mutedTracks);
+    newMutedTracks.set(trackId, !newMutedTracks.get(trackId));
+    setMutedTracks(newMutedTracks);
+    updateTrackGain(trackId);
   };
 
   const toggleTrackSolo = (trackId: string) => {
-    setSoloedTracks(prev => {
-      const newMap = new Map(prev);
-      newMap.set(trackId, !newMap.get(trackId));
-      return newMap;
-    });
+    const newSoloedTracks = new Map(soloedTracks);
+    newSoloedTracks.set(trackId, !newSoloedTracks.get(trackId));
+    setSoloedTracks(newSoloedTracks);
+    trackGainNodesRef.current.forEach((_, id) => updateTrackGain(id));
   };
-  
-
-  
-  // Update isPlaying state when playingLoopId changes
-  useEffect(() => {
-    if (playingLoopId === loopId) {
-      // This loop should be playing
-      if (!isPlaying) {
-        // But it's not currently playing, so start it
-        const startPlayback = async () => {
-          if (audioBuffersRef.current.size < audioItems.length) {
-            await loadAudioFiles();
-          }
-          playAllAudio();
-          setIsPlaying(true);
-        };
-        startPlayback();
-      }
-    } else if (isPlaying) {
-      // This loop is playing but shouldn't be
-      stopAllAudio();
-    }
-  }, [playingLoopId, loopId, isPlaying, audioItems.length]);
 
   return (
-    <div className={cn(
-      "w-full p-3 border-2 border-transparent rounded-md",
-      isPlaying && "border-red-500",
-    )}>
-      <div className="flex justify-between items-center mb-3">
-        <h4 className="font-medium text-base">Loop {loopIndex + 1}</h4>
+    <div className={cn("p-4 border rounded-md", playingLoopId === loopId ? "border-rose-500" : "border-gray-200")}>
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold">Loop {loopIndex + 1}</h3>
         <div className="flex items-center space-x-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={togglePlayPause}
             disabled={isLoading}
             aria-label={isPlaying ? "Pause" : "Play"}
-            data-testid={`loop-play-button-${loopIndex}`}
-            className="flex-shrink-0"
+            className="w-24"
           >
             {isLoading ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin mr-2" />
             ) : isPlaying ? (
-              <Pause size={16} />
+              <Pause size={16} className="mr-2" />
             ) : (
-              <Play size={16} />
+              <Play size={16} className="mr-2" />
             )}
-            <span className="ml-1 text-xs">
-              {isLoading ? "Loading" : isPlaying ? "Stop" : "Play"}
-            </span>
+            <span>{isLoading ? "Loading" : isPlaying ? "Stop" : "Play"}</span>
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={toggleMute}
-            disabled={isLoading || !isPlaying}
+            disabled={isLoading}
             aria-label={isMuted ? "Unmute" : "Mute"}
-            className="flex-shrink-0 w-8 h-8 p-0"
+            className="w-8 h-8"
           >
             {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </Button>
@@ -395,55 +301,20 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
 
       <div className="mt-2 overflow-x-auto pb-2">
         <div className="flex space-x-2">
-          {audioItems.map((audio, audioIndex) => (
-            <div
-              key={audio.id}
-              data-testid={`audio-${audio.id}`}
-              className="flex-shrink-0 w-24 flex flex-col"
-            >
-              <div
-                className={cn(
-                  "h-16 border-4 rounded-md flex items-center justify-center bg-white p-1 shadow-md",
-                  mutedTracks.get(audio.id) ? "border-gray-400" : "border-gray-700",
-                  soloedTracks.get(audio.id) && "border-green-500",
-                )}
-              >
+          {audioItems.map((audio) => (
+            <div key={audio.id} data-testid={`audio-${audio.id}`} className="flex-shrink-0 w-24 flex flex-col">
+              <div className={cn("h-16 border-4 rounded-md flex items-center justify-center bg-white p-1 shadow-md overflow-hidden", mutedTracks.get(audio.id) ? "border-gray-400" : "border-gray-700", soloedTracks.get(audio.id) && "border-green-500")}>
                 {audio.url ? (
-                  <div
-                    className="text-xs text-center text-gray-700 truncate w-full"
-                    title={audio.file_name || `Audio ${audioIndex + 1}`}
-                  >
-                    {audio.file_name || `Audio ${audioIndex + 1}`}
-                  </div>
+                  <Waveform audioUrl={audio.url} onReady={(ws) => handleWaveformReady(audio.id, ws)} />
                 ) : (
-                  <span className="text-xs truncate">{audio.id}</span>
+                  <div className="text-xs text-center text-gray-700 truncate w-full" title={audio.file_name || `Audio`}>
+                    {audio.file_name || `Audio`}
+                  </div>
                 )}
               </div>
               <div className="flex justify-center mt-1 space-x-1">
-                <button
-                  onClick={() => toggleTrackMute(audio.id)}
-                  className={cn(
-                    "w-8 h-6 text-xs font-bold border rounded focus:outline-none",
-                    mutedTracks.get(audio.id)
-                      ? "bg-yellow-400 border-yellow-600 text-white"
-                      : "bg-gray-200 border-gray-400",
-                  )}
-                  title="Mute"
-                >
-                  M
-                </button>
-                <button
-                  onClick={() => toggleTrackSolo(audio.id)}
-                  className={cn(
-                    "w-8 h-6 text-xs font-bold border rounded focus:outline-none",
-                    soloedTracks.get(audio.id)
-                      ? "bg-green-500 border-green-700 text-white"
-                      : "bg-gray-200 border-gray-400",
-                  )}
-                  title="Solo"
-                >
-                  S
-                </button>
+                <button onClick={() => toggleTrackMute(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", mutedTracks.get(audio.id) ? "bg-yellow-400 border-yellow-600 text-white" : "bg-gray-200 border-gray-400")} title="Mute">M</button>
+                <button onClick={() => toggleTrackSolo(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", soloedTracks.get(audio.id) ? "bg-green-500 border-green-700 text-white" : "bg-gray-200 border-gray-400")} title="Solo">S</button>
               </div>
               <div className="flex-grow flex flex-col items-center justify-center pt-2">
                 <div className="flex items-center h-24">
@@ -454,26 +325,17 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
                     <span>-</span>
                     <span>-</span>
                   </div>
-                  <Slider
-                    defaultValue={[1]}
-                    max={1}
-                    step={0.01}
-                    onValueChange={(value) => handleVolumeChange(audio.id, value)}
-                    className="h-full w-2"
-                    orientation="vertical"
-                  />
+                  <Slider defaultValue={[1]} max={1} step={0.01} onValueChange={(value) => handleVolumeChange(audio.id, value)} className="h-full w-2" orientation="vertical" />
                 </div>
               </div>
             </div>
           ))}
-          {/* Add empty placeholders to make space for up to 8 audio files */}
-          {audioItems.length < 8 &&
-            Array.from({ length: 8 - audioItems.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="flex-shrink-0 w-24 flex flex-col">
-                <div className="h-16 border border-dashed rounded-md bg-gray-50"></div>
-                <div className="h-7"></div>
-              </div>
-            ))}
+          {audioItems.length < 8 && Array.from({ length: 8 - audioItems.length }).map((_, i) => (
+            <div key={`empty-${i}`} className="flex-shrink-0 w-24 flex flex-col">
+              <div className="h-16 border border-dashed rounded-md bg-gray-50"></div>
+              <div className="h-7"></div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
