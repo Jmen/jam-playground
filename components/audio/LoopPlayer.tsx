@@ -37,9 +37,21 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
   const [mutedTracks, setMutedTracks] = useState<Map<string, boolean>>(new Map());
   const [soloedTracks, setSoloedTracks] = useState<Map<string, boolean>>(new Map());
   const [trackDurations, setTrackDurations] = useState<Map<string, number>>(new Map());
-  const [trackVolumes, setTrackVolumes] = useState<Map<string, number>>(
-    new Map(audioItems.map(item => [item.id, 1])),
-  );
+  const [trackVolumes, setTrackVolumes] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const initialMuted = new Map<string, boolean>();
+    const initialSoloed = new Map<string, boolean>();
+    const initialVolumes = new Map<string, number>();
+    audioItems.forEach(item => {
+      initialMuted.set(item.id, false);
+      initialSoloed.set(item.id, false);
+      initialVolumes.set(item.id, 1);
+    });
+    setMutedTracks(initialMuted);
+    setSoloedTracks(initialSoloed);
+    setTrackVolumes(initialVolumes);
+  }, [audioItems]);
   const [isLoading, setIsLoading] = useState(false);
   
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -262,18 +274,24 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
     });
   }, []);
 
+  useEffect(() => {
+    trackGainNodesRef.current.forEach((_, id) => updateTrackGain(id));
+  }, [mutedTracks, soloedTracks, trackVolumes, updateTrackGain]);
+
   const toggleTrackMute = (trackId: string) => {
-    const newMutedTracks = new Map(mutedTracks);
-    newMutedTracks.set(trackId, !newMutedTracks.get(trackId));
-    setMutedTracks(newMutedTracks);
-    updateTrackGain(trackId);
+    setMutedTracks(prev => {
+      const newMuted = new Map(prev);
+      newMuted.set(trackId, !newMuted.get(trackId));
+      return newMuted;
+    });
   };
 
   const toggleTrackSolo = (trackId: string) => {
-    const newSoloedTracks = new Map(soloedTracks);
-    newSoloedTracks.set(trackId, !newSoloedTracks.get(trackId));
-    setSoloedTracks(newSoloedTracks);
-    trackGainNodesRef.current.forEach((_, id) => updateTrackGain(id));
+    setSoloedTracks(prev => {
+      const newSoloed = new Map(prev);
+      newSoloed.set(trackId, !newSoloed.get(trackId));
+      return newSoloed;
+    });
   };
 
   return (
