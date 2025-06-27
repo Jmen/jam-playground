@@ -34,6 +34,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [mutedTracks, setMutedTracks] = useState<Map<string, boolean>>(new Map());
   const [soloedTracks, setSoloedTracks] = useState<Map<string, boolean>>(new Map());
+  const [trackDurations, setTrackDurations] = useState<Map<string, number>>(new Map());
   const [trackVolumes, setTrackVolumes] = useState<Map<string, number>>(
     new Map(audioItems.map(item => [item.id, 1])),
   );
@@ -248,6 +249,15 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
 
   const handleWaveformReady = useCallback((trackId: string, ws: WaveSurfer) => {
     wavesurferInstancesRef.current.set(trackId, ws);
+    const duration = ws.getDuration();
+    setTrackDurations(prev => {
+      if (prev.get(trackId) === duration) {
+        return prev;
+      }
+      const newDurations = new Map(prev);
+      newDurations.set(trackId, duration);
+      return newDurations;
+    });
   }, []);
 
   const toggleTrackMute = (trackId: string) => {
@@ -315,6 +325,9 @@ export function LoopPlayer({ audioItems, loopIndex, loopId }: LoopPlayerProps) {
               <div className="flex justify-center mt-1 space-x-1">
                 <button onClick={() => toggleTrackMute(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", mutedTracks.get(audio.id) ? "bg-yellow-400 border-yellow-600 text-white" : "bg-gray-200 border-gray-400")} title="Mute">M</button>
                 <button onClick={() => toggleTrackSolo(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", soloedTracks.get(audio.id) ? "bg-green-500 border-green-700 text-white" : "bg-gray-200 border-gray-400")} title="Solo">S</button>
+              </div>
+              <div className="text-center text-xs text-gray-500 mt-1 h-4">
+                {trackDurations.has(audio.id) && `${trackDurations.get(audio.id)?.toFixed(2)}s`}
               </div>
               <div className="flex-grow flex flex-col items-center justify-center pt-2">
                 <div className="flex items-center h-24">
