@@ -293,7 +293,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
             onClick={togglePlayPause}
             disabled={isLoading}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="w-24"
+            className="w-24 border border-input"
           >
             {isLoading ? (
               <Loader2 size={16} className="animate-spin mr-2" />
@@ -310,7 +310,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
             onClick={toggleMute}
             disabled={isLoading}
             aria-label={isMuted ? "Unmute" : "Mute"}
-            className="w-8 h-8"
+            className="w-8 h-8 border border-input"
           >
             {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </Button>
@@ -330,10 +330,7 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
                   </div>
                 )}
               </div>
-              <div className="flex justify-center mt-1 space-x-1">
-                <button onClick={() => toggleTrackMute(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", mutedTracks.get(audio.id) ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground")} title="Mute">M</button>
-                <button onClick={() => toggleTrackSolo(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", soloedTracks.get(audio.id) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")} title="Solo">S</button>
-              </div>
+
               <div className="text-center text-xs text-gray-500 mt-1 h-4">
                 {trackDurations.has(audio.id) && `${trackDurations.get(audio.id)?.toFixed(2)}s`}
               </div>
@@ -347,6 +344,10 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
                     <span>-</span>
                   </div>
                   <Slider defaultValue={[1]} max={1} step={0.01} onValueChange={(value) => handleVolumeChange(audio.id, value)} className="h-full w-2" orientation="vertical" />
+                </div>
+                <div className="flex justify-center mt-2 space-x-1">
+                  <button onClick={() => toggleTrackMute(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", mutedTracks.get(audio.id) ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground")} title="Mute">M</button>
+                  <button onClick={() => toggleTrackSolo(audio.id)} className={cn("w-8 h-6 text-xs font-bold border rounded focus:outline-none", soloedTracks.get(audio.id) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")} title="Solo">S</button>
                 </div>
               </div>
             </div>
