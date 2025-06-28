@@ -146,24 +146,25 @@ export default function JamDetailPage() {
 
       {showAddLoopModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-card text-card-foreground rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-bold mb-4">Add Loop</h3>
 
             {audioFiles.length > 0 ? (
               <div className="mb-4 max-h-60 overflow-y-auto">
-                {audioFiles.map((audio) => (
-                  <div
-                    key={audio.id}
-                    data-testid={`audio-item-${audio.id}`}
-                    className={`p-2 border-b cursor-pointer ${
-                      selectedAudioIds.includes(audio.id) ? "bg-blue-100" : ""
-                    }`}
-                    onClick={() => toggleAudioSelection(audio.id)}
-                  >
-                    <p className="font-medium">{audio.file_name}</p>
-                    <p className="text-xs text-gray-500">{audio.file_type}</p>
-                  </div>
-                ))}
+                {audioFiles.map((audio) => {
+                  const audioItemClass = `p-2 border-b cursor-pointer ${selectedAudioIds.includes(audio.id) ? 'bg-accent text-accent-foreground' : ''}`;
+                  return (
+                    <div
+                      key={audio.id}
+                      data-testid={`audio-item-${audio.id}`}
+                      className={audioItemClass}
+                      onClick={() => toggleAudioSelection(audio.id)}
+                    >
+                      <p className="font-medium">{audio.file_name}</p>
+                      <p className="text-xs text-gray-500">{audio.file_type}</p>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="mb-4">
@@ -174,14 +175,14 @@ export default function JamDetailPage() {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowAddLoopModal(false)}
-                className="px-4 py-2 border rounded"
+                className="px-4 py-2 border rounded bg-secondary text-secondary-foreground"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddLoop}
                 disabled={selectedAudioIds.length === 0 || addingLoop}
-                className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+                className="px-4 py-2 rounded bg-primary text-primary-foreground disabled:opacity-50"
               >
                 {addingLoop ? "Adding..." : "Add"}
               </button>
