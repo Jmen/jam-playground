@@ -2,6 +2,12 @@
 
 import { createContext, useContext, useState, useRef, ReactNode } from "react";
 
+declare global {
+  interface Window {
+    webkitAudioContext: typeof AudioContext;
+  }
+}
+
 interface AudioContextType {
   playingLoopId: string | null;
   setPlayingLoopId: (id: string | null) => void;
@@ -14,10 +20,10 @@ interface AudioContextType {
   setPeaks: (url: string, peaks: number[][]) => void;
 }
 
-const AudioContext = createContext<AudioContextType | null>(null);
+const JamAudioContext = createContext<AudioContextType | null>(null);
 
 export function useAudioContext() {
-  const context = useContext(AudioContext);
+  const context = useContext(JamAudioContext);
   if (!context) {
     throw new Error("useAudioContext must be used within an AudioProvider");
   }
@@ -36,7 +42,8 @@ export function AudioProvider({ children }: AudioProviderProps) {
 
   const getAudioContext = () => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext ||
+        window.webkitAudioContext)();
     }
     return audioContextRef.current;
   };
@@ -66,7 +73,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
   };
 
   return (
-    <AudioContext.Provider
+    <JamAudioContext.Provider
       value={{
         playingLoopId,
         setPlayingLoopId,
@@ -80,6 +87,6 @@ export function AudioProvider({ children }: AudioProviderProps) {
       }}
     >
       {children}
-    </AudioContext.Provider>
+    </JamAudioContext.Provider>
   );
 }

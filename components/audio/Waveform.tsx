@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useWavesurfer } from '@wavesurfer/react';
-import { useAudioContext } from './AudioContext';
-import type WaveSurfer from 'wavesurfer.js';
+import { useRef, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useWavesurfer } from "@wavesurfer/react";
+import { useAudioContext } from "./AudioContext";
+import type WaveSurfer from "wavesurfer.js";
 
 interface WaveformProps {
   audioUrl: string;
@@ -34,9 +34,7 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl, onReady }) => {
   return <WaveformContent audioUrl={audioUrl} onReady={onReady} />;
 };
 
-interface WaveformContentProps extends WaveformProps {}
-
-const WaveformContent: React.FC<WaveformContentProps> = ({ audioUrl, onReady }) => {
+const WaveformContent: React.FC<WaveformProps> = ({ audioUrl, onReady }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { getPeaks, setPeaks } = useAudioContext();
   const cachedPeaks = getPeaks(audioUrl);
@@ -55,9 +53,11 @@ const WaveformContent: React.FC<WaveformContentProps> = ({ audioUrl, onReady }) 
   useEffect(() => {
     if (isReady && wavesurfer) {
       const style = getComputedStyle(document.documentElement);
-      const mutedForeground = style.getPropertyValue('--muted-foreground').trim();
-      const accent = style.getPropertyValue('--accent').trim();
-      const foreground = style.getPropertyValue('--foreground').trim();
+      const mutedForeground = style
+        .getPropertyValue("--muted-foreground")
+        .trim();
+      const accent = style.getPropertyValue("--accent").trim();
+      const foreground = style.getPropertyValue("--foreground").trim();
 
       wavesurfer.setOptions({
         waveColor: `hsl(${mutedForeground})`,
@@ -79,8 +79,8 @@ const WaveformContent: React.FC<WaveformContentProps> = ({ audioUrl, onReady }) 
     <div className="relative w-full h-[80px]">
       <div
         ref={containerRef}
-        className={cn('w-full', {
-          'opacity-0': !isReady,
+        className={cn("w-full", {
+          "opacity-0": !isReady,
         })}
       />
       {!isReady && (

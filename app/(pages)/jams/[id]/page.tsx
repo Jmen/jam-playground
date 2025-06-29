@@ -89,7 +89,9 @@ export default function JamDetailPage() {
   const handleCommitLoop = async (loopId: string, audioIds: string[]) => {
     setCommittingLoopId(loopId);
     try {
-            const newLoop: Omit<Loop, 'id' | 'created_at'> = { audio: audioIds.map(id => ({ id })) };
+      const newLoop: Omit<Loop, "id" | "created_at"> = {
+        audio: audioIds.map((id) => ({ id })),
+      };
       const result = await addLoopToJamCommand(id as string, newLoop as Loop);
       if (isError(result)) {
         console.error("Failed to commit loop:", result.error.message);

@@ -23,13 +23,14 @@ export function AudioPlayer({ url, label }: AudioPlayerProps) {
     // Initialize AudioContext on first user interaction
     const initAudio = async () => {
       if (!audioContext) {
-        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const context = new (window.AudioContext ||
+          window.webkitAudioContext)();
         const gain = context.createGain();
         gain.connect(context.destination);
-        
+
         setAudioContext(context);
         setGainNode(gain);
-        
+
         try {
           const response = await fetch(url);
           const arrayBuffer = await response.arrayBuffer();
@@ -48,7 +49,7 @@ export function AudioPlayer({ url, label }: AudioPlayerProps) {
         audioSourceRef.current.stop();
         audioSourceRef.current.disconnect();
       }
-      
+
       if (audioContext) {
         // Don't close the AudioContext as it might be used by other players
         // Just clean up our connections
@@ -69,22 +70,22 @@ export function AudioPlayer({ url, label }: AudioPlayerProps) {
         audioSourceRef.current.disconnect();
         audioSourceRef.current = null;
       }
-      
+
       // Calculate how much of the audio has been played
-      offsetRef.current += (audioContext.currentTime - startTimeRef.current);
+      offsetRef.current += audioContext.currentTime - startTimeRef.current;
     } else {
       // Play audio
       const source = audioContext.createBufferSource();
       source.buffer = audioBufferRef.current;
       source.connect(gainNode);
-      
+
       // Start playback from the current offset
       source.start(0, offsetRef.current);
       startTimeRef.current = audioContext.currentTime;
-      
+
       // Store the source node for later stopping
       audioSourceRef.current = source;
-      
+
       // Handle when audio finishes playing
       source.onended = () => {
         if (audioSourceRef.current === source) {
@@ -94,19 +95,19 @@ export function AudioPlayer({ url, label }: AudioPlayerProps) {
         }
       };
     }
-    
+
     setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
     if (!gainNode) return;
-    
+
     if (isMuted) {
       gainNode.gain.value = 1;
     } else {
       gainNode.gain.value = 0;
     }
-    
+
     setIsMuted(!isMuted);
   };
 

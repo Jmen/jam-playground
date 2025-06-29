@@ -49,55 +49,55 @@ export function JamCard({
         data-testid="jam-card"
         className={className}
       >
-      <CardHeader>
-        <CardTitle>
-          <span data-testid="jam-name">Name: {jam.name}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="mb-2">
-          <span data-testid="jam-id">ID: {jam.id}</span>
-        </p>
-        <p className="mb-2">
-          <span data-testid="jam-description">
-            Description: {jam.description}
-          </span>
-        </p>
-        <p className="text-sm text-gray-500">
-          <span data-testid="jam-created-at">
-            Created at: {formatDate(jam.created_at)}
-          </span>
-        </p>
-        {jam.loops && jam.loops.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-sm font-medium">Loops:</h3>
-            <ul className="mt-2 space-y-1">
-              {jam.loops.map((loop, index) => {
-                return (
-                  <li
-                    key={index}
-                    data-testid={`loop-container-${index}`}
-                    className="text-sm border rounded-md p-3 mb-4"
-                  >
-                    {loop.audio.some(audio => audio.url) && (
-                      <LoopPlayer
-                        key={loop.id}
-                        loopId={loop.id}
-                        loopIndex={index}
-                        audioItems={loop.audio}
-                        createdAt={loop.created_at}
-                        onCommit={onCommitLoop}
-                        isCommitting={committingLoopId === loop.id}
-                      />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <CardHeader>
+          <CardTitle>
+            <span data-testid="jam-name">Name: {jam.name}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-2">
+            <span data-testid="jam-id">ID: {jam.id}</span>
+          </p>
+          <p className="mb-2">
+            <span data-testid="jam-description">
+              Description: {jam.description}
+            </span>
+          </p>
+          <p className="text-sm text-gray-500">
+            <span data-testid="jam-created-at">
+              Created at: {formatDate(jam.created_at)}
+            </span>
+          </p>
+          {jam.loops && jam.loops.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium">Loops:</h3>
+              <ul className="mt-2 space-y-1">
+                {jam.loops.map((loop, index) => {
+                  return (
+                    <li
+                      key={index}
+                      data-testid={`loop-container-${index}`}
+                      className="text-sm border rounded-md p-3 mb-4"
+                    >
+                      {loop.audio.some((audio) => audio.url) && (
+                        <LoopPlayer
+                          key={loop.id}
+                          loopId={loop.id}
+                          loopIndex={index}
+                          audioItems={loop.audio}
+                          createdAt={loop.created_at}
+                          onCommit={onCommitLoop}
+                          isCommitting={committingLoopId === loop.id}
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </AudioProvider>
   );
 }

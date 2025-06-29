@@ -19,7 +19,7 @@ export async function getSignedUrls(
         .createSignedUrl(audio.file_path, ONE_HOUR, {
           download: true,
         });
-        
+
       const { data: fileData } = await supabaseClient
         .from("audio")
         .select("file_name")
