@@ -58,10 +58,10 @@ export async function getJam(
       jam.name,
       jam.description,
       jam.created_at,
-      jam.loops.map((loop: any) => ({
+      jam.loops.map((loop) => ({
         id: loop.id,
         created_at: loop.created_at,
-        audio: loop.loop_audio.map((loop_audio: any) => ({
+        audio: loop.loop_audio.map((loop_audio: { audio: { id: string; file_path: string; }; }) => ({
           id: loop_audio.audio.id,
           file_path: loop_audio.audio.file_path,
         })),

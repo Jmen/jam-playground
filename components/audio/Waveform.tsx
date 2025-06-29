@@ -1,7 +1,10 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useWavesurfer } from '@wavesurfer/react';
+import { useAudioContext } from './AudioContext';
 import type WaveSurfer from 'wavesurfer.js';
 
 interface WaveformProps {
@@ -10,48 +13,83 @@ interface WaveformProps {
 }
 
 const Waveform: React.FC<WaveformProps> = ({ audioUrl, onReady }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [resolvedColors, setResolvedColors] = useState({
-    waveColor: '#a1a1aa',
-    progressColor: '#f43f5e',
-    cursorColor: '#18181b',
-  });
+  const [isReadyToRender, setIsReadyToRender] = useState(false);
 
   useEffect(() => {
-    // This effect runs once on mount to resolve CSS variables.
-    const style = getComputedStyle(document.documentElement);
-    const mutedForeground = style.getPropertyValue('--muted-foreground').trim();
-    const accent = style.getPropertyValue('--accent').trim();
-    const foreground = style.getPropertyValue('--foreground').trim();
-
-    setResolvedColors({
-      waveColor: `hsl(${mutedForeground})`,
-      progressColor: `hsl(${accent})`,
-      cursorColor: `hsl(${foreground})`,
-    });
+    // Defer rendering the heavy component to allow the UI to be responsive first.
+    const timer = setTimeout(() => setIsReadyToRender(true), 0);
+    return () => clearTimeout(timer);
   }, []);
+
+  if (!isReadyToRender) {
+    return (
+      <div className="relative w-full h-[80px]">
+        <div className="absolute inset-0 flex items-center justify-center bg-card rounded-md">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  return <WaveformContent audioUrl={audioUrl} onReady={onReady} />;
+};
+
+interface WaveformContentProps extends WaveformProps {}
+
+const WaveformContent: React.FC<WaveformContentProps> = ({ audioUrl, onReady }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { getPeaks, setPeaks } = useAudioContext();
+  const cachedPeaks = getPeaks(audioUrl);
 
   const { wavesurfer, isReady } = useWavesurfer({
     container: containerRef,
     url: audioUrl,
-    waveColor: resolvedColors.waveColor,
-    progressColor: resolvedColors.progressColor,
+    peaks: cachedPeaks,
     height: 80,
     barWidth: 2,
     barGap: 1,
     barRadius: 2,
-    cursorColor: resolvedColors.cursorColor,
-    cursorWidth: 2,
     interact: false,
   });
 
   useEffect(() => {
     if (isReady && wavesurfer) {
-      onReady(wavesurfer);
-    }
-  }, [isReady, wavesurfer, onReady]);
+      const style = getComputedStyle(document.documentElement);
+      const mutedForeground = style.getPropertyValue('--muted-foreground').trim();
+      const accent = style.getPropertyValue('--accent').trim();
+      const foreground = style.getPropertyValue('--foreground').trim();
 
-  return <div ref={containerRef} className="w-full" />;
+      wavesurfer.setOptions({
+        waveColor: `hsl(${mutedForeground})`,
+        progressColor: `hsl(${accent})`,
+        cursorColor: `hsl(${foreground})`,
+        cursorWidth: 2,
+      });
+
+      onReady(wavesurfer);
+
+      if (!cachedPeaks) {
+        const newPeaks = wavesurfer.exportPeaks();
+        setPeaks(audioUrl, newPeaks);
+      }
+    }
+  }, [isReady, wavesurfer, onReady, audioUrl, cachedPeaks, setPeaks]);
+
+  return (
+    <div className="relative w-full h-[80px]">
+      <div
+        ref={containerRef}
+        className={cn('w-full', {
+          'opacity-0': !isReady,
+        })}
+      />
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-card rounded-md">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Waveform;

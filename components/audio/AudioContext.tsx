@@ -10,6 +10,8 @@ interface AudioContextType {
   stopAllLoops: () => void;
   registerStopFunction: (loopId: string, stopFn: () => void) => void;
   unregisterStopFunction: (loopId: string) => void;
+  getPeaks: (url: string) => number[][] | undefined;
+  setPeaks: (url: string, peaks: number[][]) => void;
 }
 
 const AudioContext = createContext<AudioContextType | null>(null);
@@ -30,6 +32,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
   const [playingLoopId, setPlayingLoopId] = useState<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const stopFunctionsRef = useRef<Map<string, () => void>>(new Map());
+  const peaksCacheRef = useRef<Map<string, number[][]>>(new Map());
 
   const getAudioContext = () => {
     if (!audioContextRef.current) {
@@ -54,6 +57,14 @@ export function AudioProvider({ children }: AudioProviderProps) {
     stopFunctionsRef.current.delete(loopId);
   };
 
+  const getPeaks = (url: string) => {
+    return peaksCacheRef.current.get(url);
+  };
+
+  const setPeaks = (url: string, peaks: number[][]) => {
+    peaksCacheRef.current.set(url, peaks);
+  };
+
   return (
     <AudioContext.Provider
       value={{
@@ -64,6 +75,8 @@ export function AudioProvider({ children }: AudioProviderProps) {
         stopAllLoops,
         registerStopFunction,
         unregisterStopFunction,
+        getPeaks,
+        setPeaks,
       }}
     >
       {children}
