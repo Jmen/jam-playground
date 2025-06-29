@@ -4,7 +4,6 @@ import { expect } from "@playwright/test";
 export interface DraftLoop {
   audio: {
     id: string;
-    url: string;
   }[];
 }
 
@@ -53,7 +52,7 @@ export class Jams {
   async loopAtPositionIs(
     jamId: string,
     position: number,
-    expectedLoop: Loop,
+    expectedLoop: DraftLoop,
   ): Promise<void> {
     const jam = await this.driver.jams.get(this.context, jamId);
 
