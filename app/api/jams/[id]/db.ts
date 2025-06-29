@@ -3,6 +3,23 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
 import { Jam } from "./domain";
 
+interface JamQueryResponse {
+  human_readable_id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  loops: {
+    id: string;
+    created_at: string;
+    loop_audio: {
+      audio: {
+        id: string;
+        file_path: string;
+      };
+    }[];
+  }[];
+}
+
 export async function getJam(
   supabase: SupabaseClient,
   id: string,
@@ -27,7 +44,8 @@ export async function getJam(
     .eq("loops.deleted", false)
     .eq("loops.loop_audio.deleted", false)
     .order("created_at", { ascending: false, referencedTable: "loops" })
-    .limit(1);
+    .limit(1)
+    .returns<JamQueryResponse[]>();
 
   if (error) {
     logger.error({ error }, "Failed to get jam");
@@ -50,7 +68,7 @@ export async function getJam(
     };
   }
 
-  const jam = jams[0];
+  const jam: JamQueryResponse = jams[0];
 
   return {
     data: new Jam(
@@ -61,7 +79,7 @@ export async function getJam(
       jam.loops.map((loop) => ({
         id: loop.id,
         created_at: loop.created_at,
-        audio: loop.loop_audio.map((loop_audio: { audio: { id: string; file_path: string; }; }) => ({
+        audio: loop.loop_audio.map((loop_audio) => ({
           id: loop_audio.audio.id,
           file_path: loop_audio.audio.file_path,
         })),
