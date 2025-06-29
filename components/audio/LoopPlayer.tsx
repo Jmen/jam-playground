@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Loader2, GitCommit } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import Waveform from './Waveform';
 import { useAudioContext } from "./AudioContext";
@@ -21,9 +21,18 @@ interface LoopPlayerProps {
   loopIndex: number;
   loopId: string;
   createdAt: string;
+  onCommit: (loopId: string, audioIds: string[]) => void;
+  isCommitting?: boolean;
 }
 
-export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPlayerProps) {
+export function LoopPlayer({
+  audioItems,
+  loopIndex,
+  loopId,
+  createdAt,
+  onCommit,
+  isCommitting = false,
+}: LoopPlayerProps) {
   const { 
     playingLoopId, 
     setPlayingLoopId, 
@@ -331,6 +340,21 @@ export function LoopPlayer({ audioItems, loopIndex, loopId, createdAt }: LoopPla
             className="w-8 h-8 border border-input"
           >
             {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onCommit(loopId, audioItems.map((item) => item.id))}
+            aria-label="Commit Loop"
+            className="w-24 border border-input"
+            disabled={isCommitting || isLoading}
+          >
+            {isCommitting ? (
+              <Loader2 size={16} className="mr-2 animate-spin" />
+            ) : (
+              <GitCommit size={16} className="mr-2" />
+            )}
+            <span>Commit</span>
           </Button>
         </div>
       </div>

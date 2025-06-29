@@ -21,10 +21,18 @@ export interface Jam {
 interface JamCardProps {
   jam: Jam;
   className?: string;
+  onCommitLoop: (loopId: string, audioIds: string[]) => void;
+  committingLoopId?: string | null;
   isListItem?: boolean;
 }
 
-export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
+export function JamCard({
+  jam,
+  className,
+  onCommitLoop,
+  committingLoopId,
+  isListItem = false,
+}: JamCardProps) {
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString();
@@ -73,13 +81,13 @@ export function JamCard({ jam, className, isListItem = false }: JamCardProps) {
                   >
                     {loop.audio.some(audio => audio.url) && (
                       <LoopPlayer
-                        audioItems={loop.audio.filter(
-                          (audio): audio is typeof audio & { url: string } =>
-                            !!audio.url,
-                        )}
-                        loopIndex={index}
+                        key={loop.id}
                         loopId={loop.id}
+                        loopIndex={index}
+                        audioItems={loop.audio}
                         createdAt={loop.created_at}
+                        onCommit={onCommitLoop}
+                        isCommitting={committingLoopId === loop.id}
                       />
                     )}
                   </li>
