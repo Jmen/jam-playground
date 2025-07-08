@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ApiHandlerBuilder, Context } from "../../../apiHandlerBuilder";
-import { createResponse } from "@/app/api/result";
+import { createResponse } from "@/app/api/apiResponse";
 import { addLoopToJamCommand } from "./commands";
 import { getTypedBody } from "../../../wrappers/withValidation";
 import { addLoopSchema } from "./schema";

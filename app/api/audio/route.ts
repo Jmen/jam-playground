@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { ApiHandlerBuilder, Context } from "../apiHandlerBuilder";
-import { createResponse } from "@/app/api/result";
 import { getAudioCommand, uploadAudioCommand } from "./commands";
-import { badRequest } from "../apiResponse";
+import { badRequest, createResponse } from "@/app/api/apiResponse";
+
 
 export const POST = new ApiHandlerBuilder()
   .auth()

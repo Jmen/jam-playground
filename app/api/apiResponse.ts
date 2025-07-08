@@ -1,4 +1,6 @@
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
+import { isServerError, isUserError, Result } from "./result";
 
 export interface ApiResponse<T> {
   data?: T;
@@ -49,4 +51,22 @@ export const internalServerError = function () {
     ApiResponseBuilder.error("internal_server_error", "Internal server error"),
     { status: 500 },
   );
+};
+
+export const createResponse = async <T>(
+  result: Result<T>,
+  body: unknown,
+  action: string,
+) => {
+  if (isUserError(result)) {
+    logger.error({ error: result.error, body }, `Failed to ${action}`);
+    return badRequest(result.error.message);
+  }
+
+  if (isServerError(result)) {
+    logger.error({ error: result.error, body }, `Failed to ${action}`);
+    return internalServerError();
+  }
+
+  return ok(result.data);
 };

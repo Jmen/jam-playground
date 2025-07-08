@@ -3,7 +3,7 @@ import { createJamCommand, getJamsCommand } from "./commands";
 import { ApiHandlerBuilder, Context } from "../apiHandlerBuilder";
 import { getTypedBody } from "../wrappers/withValidation";
 import { createJamSchema } from "./schema";
-import { createResponse } from "@/app/api/result";
+import { createResponse } from "@/app/api/apiResponse";
 
 export const GET = new ApiHandlerBuilder()
   .auth()

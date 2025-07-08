@@ -4,7 +4,7 @@ import {
   getProfileCommand,
   updateProfileCommand,
 } from "@/app/api/my/profile/commands";
-import { createResponse } from "../../result";
+import { createResponse } from "@/app/api/apiResponse";
 import { updateProfileSchema } from "./schema";
 import { getTypedBody } from "../../wrappers/withValidation";
 

@@ -1,6 +1,3 @@
-import { logger } from "@/lib/logger";
-import { badRequest, internalServerError, ok } from "./apiResponse";
-
 export enum ErrorCode {
   CLIENT_ERROR = "client_error",
   SERVER_ERROR = "server_error",
@@ -27,21 +24,3 @@ export const isError = <T>(
   result: Result<T>,
 ): result is { error: { code: string; message: string; type: ErrorCode } } =>
   isUserError(result) || isServerError(result);
-
-export const createResponse = async <T>(
-  result: Result<T>,
-  body: unknown,
-  action: string,
-) => {
-  if (isUserError(result)) {
-    logger.error({ error: result.error, body }, `Failed to ${action}`);
-    return badRequest(result.error.message);
-  }
-
-  if (isServerError(result)) {
-    logger.error({ error: result.error, body }, `Failed to ${action}`);
-    return internalServerError();
-  }
-
-  return ok(result.data);
-};

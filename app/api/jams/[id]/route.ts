@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ApiHandlerBuilder, Context } from "../../apiHandlerBuilder";
-import { createResponse } from "@/app/api/result";
+import { createResponse } from "@/app/api/apiResponse";
 import { getJamCommand } from "./commands";
 
 export const GET = new ApiHandlerBuilder()
