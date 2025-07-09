@@ -1,25 +1,12 @@
-# 🏗️ Infrastructure Template
-
-This is an opinionated GitHub Repository Template for a Production Ready full-stack web application, based around Supabase and Vercel
-
-It sets up a Website, API, Database (with migrations), Authentication (with Social Login), CI Pipeline, and web hosting.
-
-There is also support for developing locally using Docker, and the CI Pipeline deploys to a Test and Production environment
-
-This is a starting point that you can use to build the pages, endpoints, and database tables which are unique to your application.
+# 🍓🛝 Jam Playground
 
 ## Table of Contents
 
-- [Installation](INSTALL.md)
 - [Tech Stack](#tech-stack)
 - [Design Philosophy](#design-philosophy)
   - [Boring Technology](#boring-technology)
   - [Free Tier / Scale to Zero](#free-tier--scale-to-zero)
   - [Local Off-line Development](#local-off-line-development)
-
-## Installation
-
-[Instructions here](INSTALL.md)
 
 ## Tech Stack
 
