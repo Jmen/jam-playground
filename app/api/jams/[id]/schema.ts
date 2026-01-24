@@ -28,11 +28,16 @@ const internalServerError = {
   },
 };
 
+export const updateJamSchema = z.object({
+  public: z.boolean(),
+});
+
 export const getJamSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
   created_at: z.string(),
+  access: z.string(),
   loops: z.array(
     z.object({
       audio: z.array(
@@ -59,6 +64,33 @@ export const getJamEndpointSchema = {
       description: "200 OK",
       content: {
         "application/json": { schema: getJamSchema },
+      },
+    },
+    "400": badRequest,
+    "500": internalServerError,
+  },
+};
+
+export const updateJamEndpointSchema = {
+  requestParams: {
+    path: z.object({
+      id: z.string(),
+    }),
+    header: z.object({
+      Authorization: z.string(),
+      "X-Refresh-Token": z.string(),
+    }),
+  },
+  requestBody: {
+    content: {
+      "application/json": { schema: updateJamSchema },
+    },
+  },
+  responses: {
+    "200": {
+      description: "200 OK",
+      content: {
+        "application/json": { schema: z.object({}) },
       },
     },
     "400": badRequest,

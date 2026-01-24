@@ -28,6 +28,7 @@ export interface ITestDriver {
       jamId: string,
       draftLoop: DraftLoop,
     ): Promise<void>;
+    makePublic(context: Context, jamId: string): Promise<void>;
   };
   audio: {
     upload(

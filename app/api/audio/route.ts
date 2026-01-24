@@ -3,7 +3,6 @@ import { ApiHandlerBuilder, Context } from "../apiHandlerBuilder";
 import { getAudioCommand, uploadAudioCommand } from "./commands";
 import { badRequest, createResponse } from "@/app/api/apiResponse";
 
-
 export const POST = new ApiHandlerBuilder()
   .auth()
   .build(async (req: NextRequest, context: Context) => {

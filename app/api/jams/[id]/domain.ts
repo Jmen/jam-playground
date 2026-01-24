@@ -23,6 +23,7 @@ export interface JamView {
   name: string;
   description: string;
   created_at: string;
+  access: string;
   loops: LoopView[];
 }
 
@@ -42,6 +43,7 @@ export class Jam {
     private name: string,
     private description: string,
     private created_at: string,
+    private access: string,
     private loops: Loop[],
   ) {}
 
@@ -90,6 +92,7 @@ export class Jam {
         name: this.name,
         description: this.description,
         created_at: this.created_at,
+        access: this.access,
         loops: updatedLoops,
       },
     };

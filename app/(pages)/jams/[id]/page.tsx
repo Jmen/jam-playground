@@ -8,6 +8,7 @@ import { getAudioCommand } from "@/app/api/audio/commands";
 import { JamCard } from "@/components/jams/JamCard";
 import { isOk, isError } from "@/app/api/result";
 import { AudioUpload } from "@/components/audio/AudioUpload";
+import { makeJamPublicAction } from "./actions";
 
 interface AudioFile {
   id: string;
@@ -29,6 +30,7 @@ export default function JamDetailPage() {
   const [selectedAudioIds, setSelectedAudioIds] = useState<string[]>([]);
   const [addingLoop, setAddingLoop] = useState(false);
   const [committingLoopId, setCommittingLoopId] = useState<string | null>(null);
+  const [makingPublic, setMakingPublic] = useState(false);
 
   useEffect(() => {
     const fetchJam = async () => {
@@ -144,6 +146,24 @@ export default function JamDetailPage() {
     }
   };
 
+  const handleMakePublic = async () => {
+    if (!id) return;
+
+    setMakingPublic(true);
+
+    try {
+      const result = await makeJamPublicAction(id as string);
+
+      if (isError(result)) {
+        console.error("Failed to make jam public:", result.error.message);
+      }
+    } catch (error) {
+      console.error("Error making jam public:", error);
+    } finally {
+      setMakingPublic(false);
+    }
+  };
+
   if (loading) {
     return <div className="container mx-auto p-4">Loading...</div>;
   }
@@ -166,13 +186,28 @@ export default function JamDetailPage() {
       <div className="mb-6 mt-6">
         <h2 className="text-xl font-semibold mb-2">Loops</h2>
 
-        <button
-          onClick={handleAddLoopClick}
-          className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          data-testid="add-loop-button"
-        >
-          Add Loop
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleAddLoopClick}
+            className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            data-testid="add-loop-button"
+          >
+            Add Loop
+          </button>
+
+          <button
+            onClick={handleMakePublic}
+            disabled={makingPublic || jam.access === "public"}
+            className="mb-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+            data-testid="make-public-button"
+          >
+            {jam.access === "public"
+              ? "Public"
+              : makingPublic
+                ? "Making Public..."
+                : "Make Public"}
+          </button>
+        </div>
       </div>
 
       {showAddLoopModal && (

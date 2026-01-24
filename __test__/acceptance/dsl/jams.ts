@@ -10,7 +10,6 @@ export interface DraftLoop {
 export interface Loop {
   audio: {
     id: string;
-    url: string;
   }[];
 }
 
@@ -43,6 +42,18 @@ export class Jams {
     }
 
     expect(jam).toBeTruthy();
+  }
+
+  async doesNotContain(jamId: string): Promise<void> {
+    const jams = await this.driver.jams.getAll(this.context);
+
+    const jam = jams.find((j) => j.id === jamId);
+
+    expect(jam).toBeFalsy();
+  }
+
+  async makePublic(jamId: string): Promise<void> {
+    await this.driver.jams.makePublic(this.context, jamId);
   }
 
   async addLoop(jamId: string, draftLoop: DraftLoop): Promise<void> {

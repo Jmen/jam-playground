@@ -5,6 +5,8 @@ import { getJamsCommand } from "@/app/api/jams/commands";
 import { JamCard } from "@/components/jams/JamCard";
 import { isError } from "./api/result";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const supabase = await createClient();
   const {

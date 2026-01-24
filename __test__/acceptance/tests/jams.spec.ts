@@ -16,11 +16,10 @@ test.use({
 });
 
 test.describe("Jams", () => {
-  test("solo, private, and public jams", async ({ browser }) => {
-    // solo jam
+  test("solo", async ({ browser }) => {
     const user = await User.register(createDriver(browser));
 
-    const jam = await user.jams.create("Cool Jam", "This is a cool jam");
+    const jam = await user.jams.create("Solo Jam", "This is a solo jam");
 
     await user.jams.contains(jam.id);
 
@@ -39,27 +38,19 @@ test.describe("Jams", () => {
     await user.jams.loopAtPositionIs(jam.id, 0, { audio: thirdLoop });
     await user.jams.loopAtPositionIs(jam.id, 1, { audio: secondLoop });
     await user.jams.loopAtPositionIs(jam.id, 2, { audio: firstLoop });
+  });
 
-    // private collaborative jam
-    // const user2 = await User.register(createDriver(browser));
-    // await user.jams.invite(user2.id, jam.id);
+  test("public", async ({ browser }) => {
+    const user = await User.register(createDriver(browser));
 
-    // await user2.jams.invites.contains(jam.id);
+    const jam = await user.jams.create("Public Jam", "This is a public jam");
 
-    // await user2.jams.join(jam.id);
+    const user2 = await User.register(createDriver(browser));
 
-    // await user2.jams.contains(jam.id);
+    await user2.jams.doesNotContain(jam.id);
 
-    // const audio4 = await user2.audio.upload(audioPath1, audioType);
-    // const audio5 = await user2.audio.upload(audioPath2, audioType);
-    // const audio6 = await user2.audio.upload(audioPath3, audioType);
+    await user.jams.makePublic(jam.id);
 
-    // await user2.jams.addAudio(jam.id, audio4.id);
-    // await user2.jams.addAudio(jam.id, audio5.id);
-    // await user2.jams.addAudio(jam.id, audio6.id);
-
-    // await user2.jams.loopsAre(jam.id, 3, [audio4.id, audio5.id, audio6.id]);
-    // await user2.jams.loopsAre(jam.id, 4, [audio5.id, audio6.id]);
-    // await user2.jams.loopsAre(jam.id, 5, [audio6.id]);
+    await user2.jams.contains(jam.id);
   });
 });

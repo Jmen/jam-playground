@@ -7,6 +7,7 @@ export interface Jam {
   name: string;
   description: string;
   created_at: string;
+  access?: string;
   loops?: {
     id: string;
     created_at: string;
@@ -51,7 +52,7 @@ export function JamCard({
       >
         <CardHeader>
           <CardTitle>
-            <span data-testid="jam-name">Name: {jam.name}</span>
+            <span data-testid="jam-name">{jam.name}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -60,7 +61,7 @@ export function JamCard({
           </p>
           <p className="mb-2">
             <span data-testid="jam-description">
-              Description: {jam.description}
+              {jam.description}
             </span>
           </p>
           <p className="text-sm text-gray-500">

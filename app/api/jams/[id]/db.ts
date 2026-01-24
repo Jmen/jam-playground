@@ -8,6 +8,7 @@ interface JamQueryResponse {
   name: string;
   description: string;
   created_at: string;
+  access: string;
   loops: {
     id: string;
     created_at: string;
@@ -32,6 +33,7 @@ export async function getJam(
       name,
       description,
       created_at,
+      access,
       loops(id, created_at, 
         loop_audio(audio_id, position, deleted, 
           audio(id, file_path, deleted)
@@ -76,6 +78,7 @@ export async function getJam(
       jam.name,
       jam.description,
       jam.created_at,
+      jam.access,
       jam.loops.map((loop) => ({
         id: loop.id,
         created_at: loop.created_at,
@@ -86,4 +89,30 @@ export async function getJam(
       })),
     ),
   };
+}
+
+export async function updateJamAccess(
+  supabase: SupabaseClient,
+  id: string,
+  access: string,
+  userId: string,
+): Promise<Result<object>> {
+  const { error } = await supabase
+    .from("jams")
+    .update({ access })
+    .eq("human_readable_id", id)
+    .eq("owner_id", userId);
+
+  if (error) {
+    logger.error({ error, id, access, userId }, "Failed to update jam access");
+    return {
+      error: {
+        code: "internal_server_error",
+        message: "Failed to update jam",
+        type: ErrorCode.SERVER_ERROR,
+      },
+    };
+  }
+
+  return { data: {} };
 }

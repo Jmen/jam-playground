@@ -352,6 +352,18 @@ export class PlaywrightWebDriver implements ITestDriver {
         }
       });
     },
+    makePublic: async (context: WebContext, jamId: string): Promise<void> => {
+      return await test.step("Make Jam Public", async () => {
+        const { page } = context;
+
+        await page.goto(`/jams/${jamId}`);
+        await page.waitForLoadState("networkidle");
+
+        await page.getByTestId("make-public-button").click();
+
+        await page.waitForLoadState("networkidle");
+      });
+    },
   };
 
   audio = {
