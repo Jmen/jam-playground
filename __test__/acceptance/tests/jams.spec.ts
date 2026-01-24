@@ -53,4 +53,20 @@ test.describe("Jams", () => {
 
     await user2.jams.contains(jam.id);
   });
+
+  test("non-owners cannot change jam access", async ({ browser }) => {
+    const owner = await User.register(createDriver(browser));
+    const nonOwner = await User.register(createDriver(browser));
+
+    const jam = await owner.jams.create(
+      "Private Jam",
+      "This jam should stay private",
+    );
+
+    await owner.jams.accessIs(jam.id, "private");
+
+    await nonOwner.jams.makePublicNotAllowed(jam.id);
+
+    await owner.jams.accessIs(jam.id, "private");
+  });
 });

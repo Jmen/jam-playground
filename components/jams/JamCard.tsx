@@ -60,13 +60,16 @@ export function JamCard({
             <span data-testid="jam-id">ID: {jam.id}</span>
           </p>
           <p className="mb-2">
-            <span data-testid="jam-description">
-              {jam.description}
-            </span>
+            <span data-testid="jam-description">{jam.description}</span>
           </p>
           <p className="text-sm text-gray-500">
             <span data-testid="jam-created-at">
               Created at: {formatDate(jam.created_at)}
+            </span>
+          </p>
+          <p className="text-sm text-gray-500">
+            <span data-testid="jam-access">
+              Access: {jam.access || "private"}
             </span>
           </p>
           {jam.loops && jam.loops.length > 0 && (

@@ -67,6 +67,7 @@ export async function insertJam(
       name: data.name,
       description: data.description,
       created_at: data.created_at,
+      access: data.access,
     },
   };
 }
@@ -98,6 +99,7 @@ export async function getJams(
         name: jam.name,
         description: jam.description,
         created_at: jam.created_at,
+        access: jam.access,
       })) || [],
   };
 }

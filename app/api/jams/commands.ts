@@ -12,6 +12,7 @@ export interface Jam {
   name: string;
   description: string;
   created_at: string;
+  access?: string;
   db_id?: number;
   loops?: {
     audio: {

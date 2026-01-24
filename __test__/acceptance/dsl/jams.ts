@@ -18,6 +18,7 @@ export interface Jam {
   name: string;
   description: string;
   created_at: string;
+  access?: string;
   loops: Loop[];
 }
 
@@ -32,8 +33,24 @@ export class Jams {
   }
 
   async contains(jamId: string): Promise<void> {
-    const jams = await this.driver.jams.getAll(this.context);
+    const maxAttempts = 3;
+    const delayMs = 1000;
 
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const jams = await this.driver.jams.getAll(this.context);
+      const jam = jams.find((j) => j.id === jamId);
+
+      if (jam) {
+        expect(jam).toBeTruthy();
+        return;
+      }
+
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    const jams = await this.driver.jams.getAll(this.context);
     const jam = jams.find((j) => j.id === jamId);
 
     if (!jam) {
@@ -58,6 +75,18 @@ export class Jams {
 
   async addLoop(jamId: string, draftLoop: DraftLoop): Promise<void> {
     await this.driver.jams.addLoop(this.context, jamId, draftLoop);
+  }
+
+  async accessIs(
+    jamId: string,
+    expectedAccess: "public" | "private",
+  ): Promise<void> {
+    const jam = await this.driver.jams.get(this.context, jamId);
+    expect(jam?.access).toBe(expectedAccess);
+  }
+
+  async makePublicNotAllowed(jamId: string): Promise<void> {
+    await this.driver.jams.makePublicNotAllowed(this.context, jamId);
   }
 
   async loopAtPositionIs(

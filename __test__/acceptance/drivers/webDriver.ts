@@ -171,6 +171,9 @@ export class PlaywrightWebDriver implements ITestDriver {
           (await page
             .locator('[data-testid="jam-created-at"]')
             .textContent()) || "";
+        const access =
+          (await page.locator('[data-testid="jam-access"]').textContent()) ||
+          "";
 
         const loopContainers = await page
           .locator('[data-testid^="loop-container-"]')
@@ -197,6 +200,7 @@ export class PlaywrightWebDriver implements ITestDriver {
           name: nameText.replace(/^Name:\s*/, ""),
           description: descriptionText.replace(/^Description:\s*/, ""),
           created_at,
+          access: access.replace(/^Access:\s*/, ""),
           loops: loops || [],
         };
       });
@@ -227,6 +231,10 @@ export class PlaywrightWebDriver implements ITestDriver {
               (await jamCard
                 .locator('[data-testid="jam-created-at"]')
                 .textContent()) ?? "";
+            const access =
+              (await jamCard
+                .locator('[data-testid="jam-access"]')
+                .textContent()) ?? "";
 
             const loopContainer = await jamCard
               .locator('[data-testid^="loop-container-"]')
@@ -253,6 +261,7 @@ export class PlaywrightWebDriver implements ITestDriver {
               name: nameText.replace(/^Name:\s*/, ""),
               description: descriptionText.replace(/^Description:\s*/, ""),
               created_at,
+              access: access.replace(/^Access:\s*/, ""),
               loops: loops || [],
             };
           }),
@@ -279,6 +288,9 @@ export class PlaywrightWebDriver implements ITestDriver {
           (await page
             .locator('[data-testid="jam-created-at"]')
             .textContent()) || "";
+        const access =
+          (await page.locator('[data-testid="jam-access"]').textContent()) ||
+          "";
 
         const loopContainers = await page
           .locator('[data-testid^="loop-container-"]')
@@ -305,6 +317,7 @@ export class PlaywrightWebDriver implements ITestDriver {
           name: nameText.replace(/^Name:\s*/, ""),
           description: descriptionText.replace(/^Description:\s*/, ""),
           created_at,
+          access: access.replace(/^Access:\s*/, ""),
           loops: loops || [],
         };
       });
@@ -362,6 +375,19 @@ export class PlaywrightWebDriver implements ITestDriver {
         await page.getByTestId("make-public-button").click();
 
         await page.waitForLoadState("networkidle");
+      });
+    },
+    makePublicNotAllowed: async (
+      context: WebContext,
+      jamId: string,
+    ): Promise<void> => {
+      return await test.step("Make Jam Public Not Allowed", async () => {
+        const { page } = context;
+
+        await page.goto(`/jams/${jamId}`);
+        await page.waitForLoadState("networkidle");
+
+        await expect(page.getByTestId("make-public-button")).not.toBeVisible();
       });
     },
   };

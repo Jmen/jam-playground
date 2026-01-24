@@ -241,6 +241,24 @@ export class ApiDriver implements ITestDriver {
 
       await this.checkResponse(request, response);
     },
+    makePublicNotAllowed: async (
+      context: ApiContext,
+      jamId: string,
+    ): Promise<void> => {
+      const request = new Request(`${this.baseUrl}/api/jams/${jamId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${context.accessToken}`,
+          "X-Refresh-Token": context.refreshToken || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ public: true }),
+      });
+
+      const response = await fetch(request);
+
+      await this.checkResponse(request, response);
+    },
   };
 
   audio = {
