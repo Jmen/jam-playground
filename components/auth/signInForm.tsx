@@ -12,11 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  signInAction,
-  getAuthProvidersAction,
-} from "@/components/auth/actions";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DebouncedButton } from "../debouncedButton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -36,14 +32,10 @@ const formSchema = z.object({
 
 export function SignInForm() {
   const [error, setError] = useState<string | null>(null);
-  const [providers, setProviders] = useState<{ google: boolean }>({
-    google: false,
-  });
+  const providers = {
+    google: process.env.NEXT_PUBLIC_USE_GOOGLE_AUTH === "true",
+  };
   const router = useRouter();
-
-  useEffect(() => {
-    getAuthProvidersAction().then(setProviders);
-  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,10 +46,19 @@ export function SignInForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await signInAction(values.email, values.password);
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: values.email,
+        password: values.password,
+      }),
+    });
 
-    if (result?.error) {
-      setError(result.error.message);
+    const result = await response.json();
+
+    if (!response.ok) {
+      setError(result.error?.message ?? "Sign in failed");
     } else {
       setError(null);
       router.push("/");

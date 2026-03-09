@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { signInWithGoogleAction } from "@/components/auth/actions";
+import { createClient } from "@/lib/supabase/clients/client";
 import { useState } from "react";
 import { GoogleIcon } from "@/components/icons/google";
 
@@ -15,12 +15,25 @@ export function GoogleSignIn({ onError }: GoogleSignInProps) {
   async function handleGoogleSignIn() {
     setIsLoading(true);
     try {
-      const result = await signInWithGoogleAction();
-      if (result?.error && onError) {
-        onError(result.error);
+      const supabase = createClient();
+      const origin = window.location.origin;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${origin}/api/auth/callback?next=/account`,
+          queryParams: {
+            prompt: "select_account",
+            access_type: "offline",
+          },
+        },
+      });
+
+      if (error) {
+        onError?.(error.message);
         setIsLoading(false);
-      } else if (result?.url) {
-        window.location.href = result.url;
+      } else if (data?.url) {
+        window.location.href = data.url;
       }
     } catch {
       setIsLoading(false);

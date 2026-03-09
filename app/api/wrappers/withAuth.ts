@@ -1,49 +1,78 @@
 import { NextRequest } from "next/server";
 import { internalServerError, unauthorised } from "../apiResponse";
 import { getTokens, getUserId } from "../auth";
+import { createClient } from "@/lib/supabase/clients/server";
 import { logger } from "@/lib/logger";
 import { Handler } from "../apiHandlerBuilder";
 
 export function withAuth(handler: Handler) {
   return async (req: NextRequest) => {
-    const {
+    const hasAuthHeader = req.headers.has("Authorization");
+
+    if (hasAuthHeader) {
+      return await withTokenAuth(handler, req);
+    }
+
+    return await withCookieAuth(handler, req);
+  };
+}
+
+async function withTokenAuth(handler: Handler, req: NextRequest) {
+  const { accessToken, refreshToken, error: tokenError } = await getTokens(req);
+
+  if (tokenError || !accessToken || !refreshToken) {
+    return unauthorised(tokenError);
+  }
+
+  const {
+    userId,
+    client: supabase,
+    error: userError,
+  } = await getUserId(accessToken, refreshToken);
+
+  if (userError) {
+    logger.error({ userError }, "Invalid token");
+    return unauthorised("invalid token");
+  }
+
+  if (!userId) {
+    logger.error({}, "Error getting userId");
+    return internalServerError();
+  }
+
+  if (!supabase) {
+    logger.error({}, "Error creating supabase client");
+    return internalServerError();
+  }
+
+  return await handler(req, {
+    auth: {
       accessToken,
       refreshToken,
-      error: tokenError,
-    } = await getTokens(req);
-
-    if (tokenError || !accessToken || !refreshToken) {
-      return unauthorised(tokenError);
-    }
-
-    const {
       userId,
-      client: supabase,
-      error: userError,
-    } = await getUserId(accessToken, refreshToken);
+    },
+    supabase,
+  });
+}
 
-    if (userError) {
-      logger.error({ userError }, "Invalid token");
-      return unauthorised("invalid token");
-    }
+async function withCookieAuth(handler: Handler, req: NextRequest) {
+  const supabase = await createClient();
 
-    if (!userId) {
-      logger.error({}, "Error getting userId");
-      return internalServerError();
-    }
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-    if (!supabase) {
-      logger.error({}, "Error creating supabase client");
-      return internalServerError();
-    }
+  if (error || !user) {
+    return unauthorised("Not authenticated");
+  }
 
-    return await handler(req, {
-      auth: {
-        accessToken,
-        refreshToken,
-        userId,
-      },
-      supabase,
-    });
-  };
+  return await handler(req, {
+    auth: {
+      accessToken: "",
+      refreshToken: "",
+      userId: user.id,
+    },
+    supabase,
+  });
 }

@@ -1,4 +1,4 @@
-import { resetPasswordAction } from "@/components/auth/actions";
+import { resetPasswordCommand } from "../commands";
 import { NextRequest } from "next/server";
 import { badRequest, ok } from "@/app/api/apiResponse";
 import { ApiHandlerBuilder, Context } from "@/app/api/apiHandlerBuilder";
@@ -9,11 +9,9 @@ export const POST = new ApiHandlerBuilder()
   .auth()
   .validateBody(resetPasswordSchema)
   .build(async (_: NextRequest, context: Context) => {
-    const supabase = context.supabase;
-
     const { password } = getTypedBody(context, resetPasswordSchema);
 
-    const result = await resetPasswordAction(password, supabase);
+    const result = await resetPasswordCommand(password, context.supabase);
 
     if (result?.error) {
       return badRequest(result.error.code, result.error.message);

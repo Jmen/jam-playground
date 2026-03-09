@@ -1,5 +1,3 @@
-"use server";
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorCode, isError, Result } from "@/app/api/result";
 import crypto from "crypto";

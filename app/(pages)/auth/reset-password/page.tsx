@@ -1,5 +1,3 @@
-"use server";
-
 import { ResetPasswordForm } from "@/components/auth/resetPasswordForm";
 import { createClient } from "@/lib/supabase/clients/server";
 

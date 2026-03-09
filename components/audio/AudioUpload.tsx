@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { uploadAudioCommand } from "@/app/api/audio/commands";
-import { isOk, isUserError, isServerError } from "@/app/api/result";
 
 export interface AudioUploadProps {
   onUploadSuccess?: (audioId: string) => void;
@@ -29,21 +27,21 @@ export function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
     setUploading(true);
 
     try {
-      const result = await uploadAudioCommand({
-        file,
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/audio", {
+        method: "POST",
+        body: formData,
       });
 
-      if (isOk(result)) {
-        const id = result.data.id;
+      if (response.ok) {
+        const body = await response.json();
+        const id = body.data.id;
         setAudioId(id);
-        if (onUploadSuccess) {
-          onUploadSuccess(id);
-        }
-      } else if (isUserError(result) || isServerError(result)) {
-        console.error("Upload failed:", result.error.message);
+        onUploadSuccess?.(id);
+      } else {
+        console.error("Upload failed");
       }
     } catch (error) {
       console.error("Error uploading file:", error);

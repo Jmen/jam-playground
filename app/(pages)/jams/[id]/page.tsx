@@ -2,13 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getJamCommand } from "@/app/api/jams/[id]/commands";
-import { addLoopToJamCommand, Loop } from "@/app/api/jams/[id]/loops/commands";
-import { getAudioCommand } from "@/app/api/audio/commands";
 import { JamCard } from "@/components/jams/JamCard";
-import { isOk, isError } from "@/app/api/result";
 import { AudioUpload } from "@/components/audio/AudioUpload";
-import { makeJamPublicAction } from "./actions";
 
 interface AudioFile {
   id: string;
@@ -32,23 +27,23 @@ export default function JamDetailPage() {
   const [committingLoopId, setCommittingLoopId] = useState<string | null>(null);
   const [makingPublic, setMakingPublic] = useState(false);
 
-  useEffect(() => {
-    const fetchJam = async () => {
-      try {
-        const result = await getJamCommand(id as string);
-
-        if (isOk(result)) {
-          setJam(result.data);
-        } else if (isError(result)) {
-          console.error("Error fetching jam:", result.error.message);
-        }
-      } catch (error) {
-        console.error("Error fetching jam:", error);
-      } finally {
-        setLoading(false);
+  const fetchJam = async () => {
+    try {
+      const response = await fetch(`/api/jams/${id}`);
+      if (response.ok) {
+        const body = await response.json();
+        setJam(body.data);
+      } else {
+        console.error("Error fetching jam");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching jam:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (id) {
       fetchJam();
     }
@@ -56,17 +51,12 @@ export default function JamDetailPage() {
 
   const fetchAudioFiles = async () => {
     try {
-      const result = await getAudioCommand();
-      if (isOk(result)) {
-        const files = result.data.map((file: AudioFile) => ({
-          id: file.id,
-          file_name: file.file_name,
-          file_type: file.file_type,
-          created_at: file.created_at,
-        }));
-        setAudioFiles(files);
-      } else if (isError(result)) {
-        console.error("Failed to fetch audio files:", result.error.message);
+      const response = await fetch("/api/audio");
+      if (response.ok) {
+        const body = await response.json();
+        setAudioFiles(body.data);
+      } else {
+        console.error("Failed to fetch audio files");
       }
     } catch (error) {
       console.error("Error fetching audio files:", error);
@@ -91,21 +81,20 @@ export default function JamDetailPage() {
   const handleCommitLoop = async (loopId: string, audioIds: string[]) => {
     setCommittingLoopId(loopId);
     try {
-      const newLoop: Omit<Loop, "id" | "created_at"> = {
-        audio: audioIds.map((id) => ({ id })),
-      };
-      const result = await addLoopToJamCommand(id as string, newLoop as Loop);
-      if (isError(result)) {
-        console.error("Failed to commit loop:", result.error.message);
+      const response = await fetch(`/api/jams/${id}/loops`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audio: audioIds.map((audioId) => ({ id: audioId })),
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to commit loop");
         return;
       }
 
-      const jamResult = await getJamCommand(id as string);
-      if (isOk(jamResult)) {
-        setJam(jamResult.data);
-      } else if (isError(jamResult)) {
-        console.error("Failed to get updated jam:", jamResult.error.message);
-      }
+      await fetchJam();
     } catch (error) {
       console.error("Error committing loop:", error);
     } finally {
@@ -119,26 +108,22 @@ export default function JamDetailPage() {
     setAddingLoop(true);
 
     try {
-      const loop: Loop = {
-        audio: selectedAudioIds.map((id) => ({ id })),
-      };
+      const response = await fetch(`/api/jams/${id}/loops`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audio: selectedAudioIds.map((audioId) => ({ id: audioId })),
+        }),
+      });
 
-      const addResult = await addLoopToJamCommand(id as string, loop);
-
-      if (isError(addResult)) {
-        console.error("Failed to add loop:", addResult.error.message);
+      if (!response.ok) {
+        console.error("Failed to add loop");
         return;
       }
 
-      const jamResult = await getJamCommand(id as string);
-
-      if (isOk(jamResult)) {
-        setJam(jamResult.data);
-        setShowAddLoopModal(false);
-        setSelectedAudioIds([]);
-      } else if (isError(jamResult)) {
-        console.error("Failed to get updated jam:", jamResult.error.message);
-      }
+      await fetchJam();
+      setShowAddLoopModal(false);
+      setSelectedAudioIds([]);
     } catch (error) {
       console.error("Error adding loop:", error);
     } finally {
@@ -152,11 +137,19 @@ export default function JamDetailPage() {
     setMakingPublic(true);
 
     try {
-      const result = await makeJamPublicAction(id as string);
+      const response = await fetch(`/api/jams/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ public: true }),
+      });
 
-      if (isError(result)) {
-        console.error("Failed to make jam public:", result.error.message);
+      if (!response.ok) {
+        const result = await response.json();
+        console.error("Failed to make jam public:", result.error?.message);
+        return;
       }
+
+      await fetchJam();
     } catch (error) {
       console.error("Error making jam public:", error);
     } finally {

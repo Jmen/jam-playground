@@ -1,20 +1,21 @@
-"use server";
-
 import { createClient } from "@/lib/supabase/clients/server";
-import { redirectIfNotLoggedIn } from "@/components/auth/actions";
+import { redirect } from "next/navigation";
 import { UserDetails } from "@/components/profile/userDetails";
 import { ProfileForm } from "@/components/profile/profileForm";
 import { GoogleProfile } from "@/components/auth/googleProfile";
 import { ResetPasswordForm } from "@/components/auth/resetPasswordForm";
 
 export default async function Page() {
-  await redirectIfNotLoggedIn();
-
   const supabase = await createClient();
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/");
+  }
 
   return (
     <div>

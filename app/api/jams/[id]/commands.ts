@@ -1,5 +1,3 @@
-"use server";
-
 import { createClient } from "@/lib/supabase/clients/server";
 import { ErrorCode, isError, Result } from "@/app/api/result";
 import { getJam, updateJamAccess } from "./db";

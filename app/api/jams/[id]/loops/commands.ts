@@ -1,5 +1,3 @@
-"use server";
-
 import { createClient } from "@/lib/supabase/clients/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorCode, Result } from "../../../result";

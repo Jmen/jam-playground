@@ -1,17 +1,19 @@
-import { signUpAction } from "@/components/auth/actions";
+import { signUpCommand } from "../commands";
 import { badRequest, internalServerError, ok } from "../../apiResponse";
 import { logger } from "@/lib/logger";
 import { ApiHandlerBuilder, Context } from "../../apiHandlerBuilder";
 import { registerSchema } from "../schema";
 import { getTypedBody } from "../../wrappers/withValidation";
 import { NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/clients/server";
 
 export const POST = new ApiHandlerBuilder()
   .validateBody(registerSchema)
   .build(async (_: NextRequest, context: Context) => {
     const { email, password } = getTypedBody(context, registerSchema);
 
-    const result = await signUpAction(email, password);
+    const supabase = await createClient();
+    const result = await signUpCommand(email, password, supabase);
 
     if (result?.error) {
       return badRequest(result.error.code, result.error.message);

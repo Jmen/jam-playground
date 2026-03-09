@@ -86,7 +86,7 @@ Save and go back into the **Client** and you will see the **Client ID** and **Cl
 
 Enable Google Auth in the web code by setting this **Environment Variable** in the `.env.local` file (in the root directory)
 
-- `USE_GOOGLE_AUTH=true`
+- `NEXT_PUBLIC_USE_GOOGLE_AUTH=true`
 
 Set the credentials in the `lib/.env.local` file for Supabase
 

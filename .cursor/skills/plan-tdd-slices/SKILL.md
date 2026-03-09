@@ -1,46 +1,74 @@
 ---
 name: plan-tdd-slices
-description: used in plan mode to implement changes using TDD, slicing work into incremental cycles
+description: Plan and execute work using Test Driven Design in vertical slices with review checkpoints
 ---
 
 **Preparation**
 
-- see if there are any opportunities to refactor in order to make the change simpler
-- "First make the change easy, then make the easy change"
+- before starting, check if there are any refactoring(s) that would make the change simpler to implement
+- "make the change easy, then make the easy change"
 
-**Vertical Slicing**
+**Slicing**
 
-- slice the work vertically so that it can be tested and implemented end to end
-- keep the code in a working state as much as possible at each stage
-- I want to review each slice before continuing, and each review to be as simple as possible to understand. 
-- The related tests and implementation in one logical end to end change set
+- slice the work vertically, test and implement each slice of functionality end to end, starting from the external interface
+- prefer keeping the code in a work state as much as possible at each stage
+- any shared fundational work can be added onto the first slice to keep in interfaces client driven
+- any shared infrastructure could be added as an extra step at the end
 
-**Test Planning**
+e.g. for adding a new resource which requires CRUD operations the slices could be
 
-- plan what tests are needed for each vertical slice upfront
-- happy paths can be tests from the external inteface with acceptance tests
-- user error handling can be tested from the external interface with acceptance test e.g. bad request, permissions
-- internal error handling and edge cases can be tested at lower levels with unit tests
+1. Create new widget
+2. Get new widget
+3. Update widget
+4. Delete widget
 
-**Test Driven Design**
+The order is important too - Create is first, as then there is potential some data to read, then Get to read back what we expect to have been written. Update should be very similar to the Create action, and finally Delete which is normally an optional extra.
 
-1. write a failing test
-2. run the test to ensure it fails
-3. check that the error message from the test explains clearly what the problem is
-4. write the simplest code to make the test pass
-5. refactor the implementation code, if needed
-6. refactor the test code, if needed
-7. repeat from step 1. until the entire slice of work is complete
+Each of these are external operations which can be tested, reviewed, and deployed end-to-end independently
 
-**Review**
+**Test Driven Development**
 
-- Stop after each vertical slice to allow me to review the code and request any changes before proceeding
-- Wait for me to explicitly say to continue
-- Do not assume that it is okay to continue after fixing any review comments, there maybe more changes needed
+1. write a test
+2. state it's expected failure
+3. verify the test fails, with a message which clearly explains the error
+4. make the test pass in the simplest possible way
+5. refactor the implementation
+6. refactor the tests
+7. repeat from step 1 until the slice is complete
+
+- use emojis to make the current stage clear 🟥🟩🟦
+- look for opportunities to add to existing tests rather than adding a new test everytime
+- we want to keep the tests consice, and minimise how long they take to run
+
+**Testing Style - Integration or Unit Test**
+
+Write an integration test when…
+- The requirement is “done” only if a user (or external system) can do/see it.
+Example: “Customer can place an order and gets a confirmation.”
+- You’re validating a workflow across components (API + persistence + messaging + config).
+Example: “Submitting a return triggers a refund and an email.”
+- You want an executable spec for a story / acceptance criteria (ATDD/BDD style).
+Example: “Given stock is 0, when I try to buy, then purchase is rejected.”
+
+Write a unit test when…
+- You need broad, edge-case-heavy coverage (boundaries, nulls, weird inputs).
+- You’re testing error handling branches that are hard to reach end-to-end.
+- Having many tests at the integration level would slow down the overall test suite
+
+**Reviewing**
+
+- I want to review each slice before continuing, and each review to be as simple as possible to understand.
+- The related tests and implementation should be in one logical end to end changeset
+
+**Deployment Risk**
+
+- evaluate the deployment risk of this change in term of backward compatibility
+- recommend if feature toggles might be useful, or a certain deployment order of updates
 
 **TODO Template**
 
-Use this template for the TODO list, but the can be extra steps if appropriate, (like infrastructure)
+Use this template for the TODO list, but there can be extra steps if appropriate, (like infrastructure)
 
-TDD <vertical slice>
-STOP (USER INPUT ABSOLUTELY REQUIRED) - Ask for Review of <vertical slice>
+- Write test for <feature slice>
+- Implement <feature slice>
+- USER INPUT ABSOLUTELY REQUIRED - STOP and Ask for Review of <feature slice>

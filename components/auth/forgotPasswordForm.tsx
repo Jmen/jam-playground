@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { DebouncedButton } from "../debouncedButton";
-import { forgotPasswordAction } from "@/components/auth/actions";
 import {
   Card,
   CardContent,
@@ -42,10 +41,15 @@ export function ForgotPasswordForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await forgotPasswordAction(values.email);
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: values.email }),
+    });
 
-    if (result.error) {
-      setError(result.error.message);
+    if (!response.ok) {
+      const result = await response.json();
+      setError(result.error?.message ?? "Failed to send reset link");
       return;
     }
 

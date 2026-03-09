@@ -12,12 +12,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signUpAction } from "@/components/auth/actions";
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { DebouncedButton } from "../debouncedButton";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "../ui/card";
-import { logger } from "@/lib/logger";
 
 const formSchema = z.object({
   email: z
@@ -44,10 +43,19 @@ export function RegisterForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const result = await signUpAction(values.email, values.password);
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
 
-      if (result?.error) {
-        setError(result.error.message);
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error?.message ?? "Registration failed");
       } else {
         setError(null);
         router.push("/");
