@@ -39,6 +39,13 @@ export const createJamSchema = z.object({
     .max(500, "Description must be less than 500 characters"),
 });
 
+export const createJamResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  created_at: z.string(),
+});
+
 export const getJamSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -81,7 +88,7 @@ export const createJamEndpointSchema = {
     "200": {
       description: "200 OK",
       content: {
-        "application/json": { schema: createJamSchema },
+        "application/json": { schema: createJamResponseSchema },
       },
     },
     "400": badRequest,

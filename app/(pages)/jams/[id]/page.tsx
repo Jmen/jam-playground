@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { JamCard, type Jam } from "@/components/jams/JamCard";
 import { AudioUpload } from "@/components/audio/AudioUpload";
 import { api } from "@/lib/api/client";
+import { z } from "zod";
+import { audioFileSchema } from "@/app/api/audio/schema";
 
 export default function JamDetailPage() {
   const { id } = useParams();
@@ -12,7 +14,7 @@ export default function JamDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showAddLoopModal, setShowAddLoopModal] = useState(false);
   const [audioFiles, setAudioFiles] = useState<
-    { id: string; file_name: string; file_type: string; created_at: string }[]
+    z.infer<typeof audioFileSchema>[]
   >([]);
   const [selectedAudioIds, setSelectedAudioIds] = useState<string[]>([]);
   const [addingLoop, setAddingLoop] = useState(false);

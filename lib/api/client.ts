@@ -5,11 +5,17 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "@/app/api/auth/schema";
-import { createJamSchema } from "@/app/api/jams/schema";
-import { updateJamSchema } from "@/app/api/jams/[id]/schema";
-import type { Jam } from "@/components/jams/JamCard";
+import {
+  createJamSchema,
+  createJamResponseSchema,
+} from "@/app/api/jams/schema";
+import { getJamSchema, updateJamSchema } from "@/app/api/jams/[id]/schema";
 import { addLoopSchema } from "@/app/api/jams/[id]/loops/schema";
-import { updateProfileSchema } from "@/app/api/my/profile/schema";
+import {
+  getProfileSchema,
+  updateProfileSchema,
+} from "@/app/api/my/profile/schema";
+import { audioFileSchema } from "@/app/api/audio/schema";
 
 export type ApiResult<T> =
   | { data: T; error: undefined }
@@ -83,9 +89,14 @@ export const api = {
 
   jams: {
     create: (body: z.infer<typeof createJamSchema>) =>
-      jsonRequest<{ id: string }>("POST", "/api/jams", body),
+      jsonRequest<z.infer<typeof createJamResponseSchema>>(
+        "POST",
+        "/api/jams",
+        body,
+      ),
 
-    get: (id: string) => jsonRequest<Jam>("GET", "/api/jams/" + id),
+    get: (id: string) =>
+      jsonRequest<z.infer<typeof getJamSchema>>("GET", "/api/jams/" + id),
 
     makePublic: (id: string) =>
       jsonRequest("PUT", "/api/jams/" + id, {
@@ -102,22 +113,19 @@ export const api = {
     upload: (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      return formDataRequest<{ id: string }>("/api/audio", formData);
+      return formDataRequest<z.infer<typeof audioFileSchema>>(
+        "/api/audio",
+        formData,
+      );
     },
 
     getAll: () =>
-      jsonRequest<
-        {
-          id: string;
-          file_name: string;
-          file_type: string;
-          created_at: string;
-        }[]
-      >("GET", "/api/audio"),
+      jsonRequest<z.infer<typeof audioFileSchema>[]>("GET", "/api/audio"),
   },
 
   profile: {
-    get: () => jsonRequest<{ username: string }>("GET", "/api/my/profile"),
+    get: () =>
+      jsonRequest<z.infer<typeof getProfileSchema>>("GET", "/api/my/profile"),
 
     update: (body: z.infer<typeof updateProfileSchema>) =>
       jsonRequest("POST", "/api/my/profile", body),

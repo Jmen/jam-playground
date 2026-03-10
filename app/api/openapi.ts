@@ -12,7 +12,10 @@ import {
   forgotPasswordEndpointSchema,
   resetPasswordEndpointSchema,
 } from "./auth/schema";
-import { getJamEndpointSchema } from "./jams/[id]/schema";
+import {
+  getJamEndpointSchema,
+  updateJamEndpointSchema,
+} from "./jams/[id]/schema";
 import { addLoopEndpointSchema } from "./jams/[id]/loops/schema";
 import {
   getAudioEndpointSchema,
@@ -47,6 +50,7 @@ export const document = createDocument({
     },
     "/api/jams/{id}": {
       get: getJamEndpointSchema,
+      put: updateJamEndpointSchema,
     },
     "/api/jams/{id}/loops": {
       post: addLoopEndpointSchema,

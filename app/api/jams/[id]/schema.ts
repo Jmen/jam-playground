@@ -40,9 +40,13 @@ export const getJamSchema = z.object({
   access: z.string(),
   loops: z.array(
     z.object({
+      id: z.string(),
+      created_at: z.string(),
       audio: z.array(
         z.object({
           id: z.string(),
+          url: z.string(),
+          file_name: z.string().optional(),
         }),
       ),
     }),
