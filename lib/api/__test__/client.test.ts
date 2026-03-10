@@ -3,7 +3,7 @@ import { api } from "../client";
 const mockFdefault = global.fetch;
 
 beforeEach(() => {
-  global.fetch = jest.fn();
+  global.fetch = vi.fn();
 });
 
 afterEach(() => {
@@ -11,21 +11,21 @@ afterEach(() => {
 });
 
 function givenResponseIsSuccess<T>(data: T) {
-  (global.fetch as jest.Mock).mockResolvedValue({
+  vi.mocked(global.fetch).mockResolvedValue({
     ok: true,
     json: async () => ({ data }),
-  });
+  } as Response);
 }
 
 function givenResponseIsError(message: string) {
-  (global.fetch as jest.Mock).mockResolvedValue({
+  vi.mocked(global.fetch).mockResolvedValue({
     ok: false,
     json: async () => ({ error: { code: "error_code", message } }),
-  });
+  } as Response);
 }
 
 function givenNetworkError() {
-  (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
+  vi.mocked(global.fetch).mockRejectedValue(new Error("Network error"));
 }
 
 describe("jsonRequest", () => {
@@ -98,7 +98,7 @@ describe("formDataRequest", () => {
 
     await api.audio.upload(file);
 
-    const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+    const [url, options] = vi.mocked(global.fetch).mock.calls[0];
     expect(url).toBe("/api/audio");
     expect(options.method).toBe("POST");
     expect(options.body).toBeInstanceOf(FormData);

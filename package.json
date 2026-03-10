@@ -14,7 +14,7 @@
     "supabase:db:reset": "supabase db reset --workdir ./lib",
     "supabase:db:diff": "supabase db diff --workdir ./lib",
     "supabase:db:push": "supabase db push --workdir ./lib",
-    "test:unit": "jest app lib",
+    "test:unit": "vitest run",
     "test:acceptance": "npx playwright test --reporter=list",
     "test:acceptance:api": "export DRIVER=api && npm run test:acceptance -- --project=chromium",
     "test:acceptance:api:ui": "export DRIVER=api && npm run test:acceptance -- --project=chromium --ui",
@@ -52,7 +52,6 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
-    "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -61,13 +60,13 @@
     "eslint": "^8",
     "eslint-config-next": "15.0.3",
     "eslint-config-prettier": "^9.1.0",
-    "jest": "^29.7.0",
+    "jsdom": "^25.0.1",
     "postcss": "^8",
     "prettier": "3.4.2",
     "supabase": "^2.2.1",
     "tailwindcss": "^3.4.1",
-    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }
