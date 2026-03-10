@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DebouncedButton } from "../debouncedButton";
@@ -15,22 +15,10 @@ const schema = z.object({
     .max(32, { message: "username must be less than 32 characters" }),
 });
 
-export function ProfileForm() {
+export function ProfileForm({ initialUsername }: { initialUsername: string }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [username, setUsername] = useState("Loading...");
-
-  useEffect(() => {
-    api.profile.get().then((result) => {
-      if (result.error !== undefined) {
-        setError(result.error);
-        return;
-      }
-      setUsername(result.data.username || "");
-      setIsLoading(false);
-    });
-  }, []);
+  const [username, setUsername] = useState(initialUsername);
 
   async function onSubmit() {
     const parsed = schema.safeParse({ username });
@@ -67,7 +55,6 @@ export function ProfileForm() {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isLoading}
             />
           </div>
           <div className="flex items-center gap-4">
