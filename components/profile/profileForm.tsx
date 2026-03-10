@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DebouncedButton } from "../debouncedButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { logger } from "@/lib/logger";
+import { api } from "@/lib/api/client";
 
 const schema = z.object({
   username: z
@@ -22,22 +22,14 @@ export function ProfileForm() {
   const [username, setUsername] = useState("Loading...");
 
   useEffect(() => {
-    fetch("/api/my/profile")
-      .then(async (response) => {
-        if (!response.ok) {
-          const body = await response.json();
-          throw new Error(body.error?.message ?? "Failed to load profile");
-        }
-        return response.json();
-      })
-      .then((body) => {
-        setUsername(body.data.username || "");
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        logger.error("Failed to load profile", { error });
-        setError(error.message);
-      });
+    api.profile.get().then((result) => {
+      if (result.error !== undefined) {
+        setError(result.error);
+        return;
+      }
+      setUsername(result.data.username || "");
+      setIsLoading(false);
+    });
   }, []);
 
   async function onSubmit() {
@@ -47,15 +39,10 @@ export function ProfileForm() {
       return;
     }
 
-    const response = await fetch("/api/my/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
-    });
+    const result = await api.profile.update({ username });
 
-    if (!response.ok) {
-      const body = await response.json();
-      setError(body.error?.message ?? "Failed to update profile");
+    if (result.error) {
+      setError(result.error);
       return;
     }
 

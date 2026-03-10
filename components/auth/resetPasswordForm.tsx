@@ -17,6 +17,7 @@ import { DebouncedButton } from "../debouncedButton";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "@supabase/supabase-js";
+import { api } from "@/lib/api/client";
 
 const formSchema = z
   .object({
@@ -60,15 +61,12 @@ export function ResetPasswordForm({ user }: { user: User | null }) {
       return;
     }
 
-    const response = await fetch("/api/auth/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: values.password }),
+    const result = await api.auth.resetPassword({
+      password: values.password,
     });
 
-    if (!response.ok) {
-      const result = await response.json();
-      setError(result.error?.message ?? "Password reset failed");
+    if (result.error) {
+      setError(result.error);
       return;
     }
 

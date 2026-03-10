@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GoogleSignIn } from "./googleSignIn";
 import { Card, CardContent } from "../ui/card";
+import { api } from "@/lib/api/client";
 
 const formSchema = z.object({
   email: z
@@ -46,19 +47,13 @@ export function SignInForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const response = await fetch("/api/auth/sign-in", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: values.email,
-        password: values.password,
-      }),
+    const result = await api.auth.signIn({
+      email: values.email,
+      password: values.password,
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      setError(result.error?.message ?? "Sign in failed");
+    if (result.error) {
+      setError(result.error);
     } else {
       setError(null);
       router.push("/");

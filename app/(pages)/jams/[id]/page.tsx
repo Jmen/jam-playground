@@ -2,45 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { JamCard } from "@/components/jams/JamCard";
+import { JamCard, type Jam } from "@/components/jams/JamCard";
 import { AudioUpload } from "@/components/audio/AudioUpload";
-
-interface AudioFile {
-  id: string;
-  file_name: string;
-  file_type: string;
-  created_at: string;
-}
-
-import type { Jam as JamCardType } from "@/components/jams/JamCard";
-
-type Jam = JamCardType;
+import { api } from "@/lib/api/client";
 
 export default function JamDetailPage() {
   const { id } = useParams();
   const [jam, setJam] = useState<Jam | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddLoopModal, setShowAddLoopModal] = useState(false);
-  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
+  const [audioFiles, setAudioFiles] = useState<
+    { id: string; file_name: string; file_type: string; created_at: string }[]
+  >([]);
   const [selectedAudioIds, setSelectedAudioIds] = useState<string[]>([]);
   const [addingLoop, setAddingLoop] = useState(false);
   const [committingLoopId, setCommittingLoopId] = useState<string | null>(null);
   const [makingPublic, setMakingPublic] = useState(false);
 
   const fetchJam = async () => {
-    try {
-      const response = await fetch(`/api/jams/${id}`);
-      if (response.ok) {
-        const body = await response.json();
-        setJam(body.data);
-      } else {
-        console.error("Error fetching jam");
-      }
-    } catch (error) {
-      console.error("Error fetching jam:", error);
-    } finally {
-      setLoading(false);
+    const result = await api.jams.get(id as string);
+    if (result.data) {
+      setJam(result.data);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -50,16 +34,9 @@ export default function JamDetailPage() {
   }, [id]);
 
   const fetchAudioFiles = async () => {
-    try {
-      const response = await fetch("/api/audio");
-      if (response.ok) {
-        const body = await response.json();
-        setAudioFiles(body.data);
-      } else {
-        console.error("Failed to fetch audio files");
-      }
-    } catch (error) {
-      console.error("Error fetching audio files:", error);
+    const result = await api.audio.getAll();
+    if (result.data) {
+      setAudioFiles(result.data);
     }
   };
 
@@ -80,81 +57,40 @@ export default function JamDetailPage() {
 
   const handleCommitLoop = async (loopId: string, audioIds: string[]) => {
     setCommittingLoopId(loopId);
-    try {
-      const response = await fetch(`/api/jams/${id}/loops`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audio: audioIds.map((audioId) => ({ id: audioId })),
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to commit loop");
-        return;
-      }
-
+    const result = await api.loops.add(id as string, {
+      audio: audioIds.map((audioId) => ({ id: audioId })),
+    });
+    if (result.data) {
       await fetchJam();
-    } catch (error) {
-      console.error("Error committing loop:", error);
-    } finally {
-      setCommittingLoopId(null);
     }
+    setCommittingLoopId(null);
   };
 
   const handleAddLoop = async () => {
     if (selectedAudioIds.length === 0 || !id) return;
 
     setAddingLoop(true);
+    const result = await api.loops.add(id as string, {
+      audio: selectedAudioIds.map((audioId) => ({ id: audioId })),
+    });
 
-    try {
-      const response = await fetch(`/api/jams/${id}/loops`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audio: selectedAudioIds.map((audioId) => ({ id: audioId })),
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to add loop");
-        return;
-      }
-
+    if (result.data) {
       await fetchJam();
       setShowAddLoopModal(false);
       setSelectedAudioIds([]);
-    } catch (error) {
-      console.error("Error adding loop:", error);
-    } finally {
-      setAddingLoop(false);
     }
+    setAddingLoop(false);
   };
 
   const handleMakePublic = async () => {
     if (!id) return;
 
     setMakingPublic(true);
-
-    try {
-      const response = await fetch(`/api/jams/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ public: true }),
-      });
-
-      if (!response.ok) {
-        const result = await response.json();
-        console.error("Failed to make jam public:", result.error?.message);
-        return;
-      }
-
+    const result = await api.jams.makePublic(id as string);
+    if (result.data) {
       await fetchJam();
-    } catch (error) {
-      console.error("Error making jam public:", error);
-    } finally {
-      setMakingPublic(false);
     }
+    setMakingPublic(false);
   };
 
   if (loading) {

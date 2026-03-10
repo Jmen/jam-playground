@@ -3,12 +3,13 @@
 import { useRouter } from "next/navigation";
 import { DebouncedButton } from "../debouncedButton";
 import { ButtonProps } from "@/components/ui/button";
+import { api } from "@/lib/api/client";
 
 export function SignOutButton({ variant, size, ...props }: ButtonProps) {
   const router = useRouter();
 
   async function onClick() {
-    await fetch("/api/auth/sign-out", { method: "POST" });
+    await api.auth.signOut();
     router.push("/");
   }
 

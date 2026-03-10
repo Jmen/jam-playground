@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/clients/client";
+import { api } from "@/lib/api/client";
 
 export default function Page() {
   const router = useRouter();
@@ -32,25 +33,15 @@ export default function Page() {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
 
-    try {
-      const response = await fetch("/api/jams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description }),
-      });
+    const result = await api.jams.create({ name, description });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.error?.message ?? "Failed to create jam");
-      } else {
-        router.push(`/jams/${result.data.id}`);
-      }
-    } catch {
-      setError("An unexpected error occurred");
-    } finally {
+    if (result.error !== undefined) {
+      setError(result.error);
       setIsPending(false);
+      return;
     }
+
+    router.push(`/jams/${result.data.id}`);
   }
 
   return (

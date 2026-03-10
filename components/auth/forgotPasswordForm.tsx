@@ -21,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { api } from "@/lib/api/client";
 
 const formSchema = z.object({
   email: z
@@ -41,15 +42,10 @@ export function ForgotPasswordForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const response = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: values.email }),
-    });
+    const result = await api.auth.forgotPassword({ email: values.email });
 
-    if (!response.ok) {
-      const result = await response.json();
-      setError(result.error?.message ?? "Failed to send reset link");
+    if (result.error) {
+      setError(result.error);
       return;
     }
 
