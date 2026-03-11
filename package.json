@@ -17,8 +17,7 @@
     "test:unit": "vitest run app lib components",
     "test:acceptance": "vitest run __test__/acceptance/tests",
     "test:smoke": "npx playwright test --config=playwright.smoke.config.ts",
-    "precommit": "next lint && npm run prettier && npm run test:unit && npm run test:acceptance && npm run test:smoke",
-    "test:flakiness-check": "npm run pre-commit && npm run pre-commit && npm run pre-commit"
+    "precommit": "time (next lint && npm run prettier && npm run test:unit && npm run test:acceptance && npm run test:smoke)",
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
