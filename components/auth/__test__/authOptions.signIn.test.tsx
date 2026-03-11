@@ -63,9 +63,7 @@ describe("Sign In", () => {
 
     await fillAndSubmitSignIn("user@example.com", "wrongpass");
 
-    expect(
-      await screen.findByText("Invalid credentials"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Invalid credentials")).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
   });
 });

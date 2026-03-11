@@ -1,31 +1,25 @@
-import { Context, ITestDriver } from "../drivers/ITestDriver";
+import { z } from "zod";
+import { ApiDriver, ApiContext } from "../drivers/apiDriver";
 import { expect } from "@playwright/test";
+import { addLoopSchema } from "@/app/api/jams/[id]/loops/schema";
+import { getJamSchema } from "@/app/api/jams/[id]/schema";
+import { createJamResponseSchema } from "@/app/api/jams/schema";
 
-export interface DraftLoop {
-  audio: {
-    id: string;
-  }[];
-}
+export type DraftLoop = z.infer<typeof addLoopSchema>;
 
-export interface Loop {
-  audio: {
-    id: string;
-  }[];
-}
+export type Loop = z.infer<typeof getJamSchema>["loops"][number];
 
-export interface Jam {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  access?: string;
-  loops: Loop[];
-}
+export type Jam =
+  | z.infer<typeof getJamSchema>
+  | (z.infer<typeof createJamResponseSchema> & {
+      access?: string;
+      loops?: Loop[];
+    });
 
 export class Jams {
   constructor(
-    private readonly driver: ITestDriver,
-    private context: Context,
+    private readonly driver: ApiDriver,
+    private context: ApiContext,
   ) {}
 
   async create(name: string, description: string): Promise<Jam> {

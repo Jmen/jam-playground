@@ -69,9 +69,7 @@ describe("Register", () => {
 
     await fillAndSubmitRegister("taken@example.com", "password123");
 
-    expect(
-      await screen.findByText("Email already taken"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Email already taken")).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
   });
 });

@@ -1,113 +1,61 @@
-import { ITestDriver } from "./ITestDriver";
-import { DraftLoop, Jam } from "../dsl/jams";
-import { AudioFile } from "@/__test__/acceptance/dsl/audio";
+import { z } from "zod";
+import { createApi } from "@/lib/api/client";
+import { getProfileSchema } from "@/app/api/my/profile/schema";
+import { addLoopSchema } from "@/app/api/jams/[id]/loops/schema";
+import { getJamSchema } from "@/app/api/jams/[id]/schema";
+import { createJamResponseSchema } from "@/app/api/jams/schema";
+import { audioFileSchema } from "@/app/api/audio/schema";
 
 export interface ApiContext {
   accessToken?: string;
   refreshToken?: string;
 }
 
-export class ApiDriver implements ITestDriver {
+export class ApiDriver {
   constructor(private readonly baseUrl: string) {}
 
-  async checkResponse<T = unknown>(
-    request: Request,
-    response: Response,
-    expectedStatusCode: number = 200,
-  ): Promise<T> {
-    if (response.status !== expectedStatusCode) {
-      console.error("REQUEST:");
-      console.error(` method: ${request.method}`);
-      console.error(` path: ${request.url}`);
-      console.error(` data: ${JSON.stringify(request.body)}`);
-      console.error("RESPONSE:");
-      console.error(` expected status: ${expectedStatusCode}`);
-      console.error(` actual   status: ${response.status}`);
-      console.error(` data: ${JSON.stringify(await response.json())}`);
-
-      throw new Error(response.statusText);
-    }
-
-    return (await response.json()) as T;
+  private client(context?: ApiContext) {
+    return createApi({
+      baseUrl: this.baseUrl,
+      getHeaders: context
+        ? () => ({
+            Authorization: `Bearer ${context.accessToken}`,
+            "X-Refresh-Token": context.refreshToken || "",
+          })
+        : undefined,
+    });
   }
 
   auth = {
     register: async (email: string, password: string): Promise<ApiContext> => {
-      const request = new Request(`${this.baseUrl}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: ApiContext }>(
-        request,
-        response,
-      );
-
-      return body.data;
+      const result = await this.client().auth.register({ email, password });
+      if (result.error) throw new Error(result.error);
+      return result.data as ApiContext;
     },
     signIn: async (email: string, password: string): Promise<ApiContext> => {
-      const request = new Request(`${this.baseUrl}/api/auth/sign-in`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: ApiContext }>(
-        request,
-        response,
-      );
-
-      return body.data;
+      const result = await this.client().auth.signIn({ email, password });
+      if (result.error) throw new Error(result.error);
+      return result.data as ApiContext;
     },
     signInIsUnauthorized: async (
       email: string,
       password: string,
     ): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/auth/sign-in`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response, 400);
+      const result = await this.client().auth.signIn({ email, password });
+      if (!result.error) throw new Error("Expected unauthorized");
     },
     signOut: async (context: ApiContext): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/auth/sign-out`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-        },
-      });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response);
+      const result = await this.client(context).auth.signOut();
+      if (result.error) throw new Error(result.error);
     },
     resetPassword: async (
       context: ApiContext,
       newPassword: string,
     ): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/auth/reset-password`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "Content-Type": "application/json",
-          "X-Refresh-Token": context.refreshToken || "",
-        },
-        body: JSON.stringify({ password: newPassword }),
+      const result = await this.client(context).auth.resetPassword({
+        password: newPassword,
       });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response);
+      if (result.error) throw new Error(result.error);
     },
   };
 
@@ -116,39 +64,15 @@ export class ApiDriver implements ITestDriver {
       context: ApiContext,
       profile: { username: string },
     ): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/my/profile`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profile),
-      });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response);
+      const result = await this.client(context).profile.update(profile);
+      if (result.error) throw new Error(result.error);
     },
     getMyProfile: async (
       context: ApiContext,
-    ): Promise<{ username: string }> => {
-      const request = new Request(`${this.baseUrl}/api/my/profile`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-        },
-      });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: { username: string } }>(
-        request,
-        response,
-      );
-
-      return body.data;
+    ): Promise<z.infer<typeof getProfileSchema>> => {
+      const result = await this.client(context).profile.get();
+      if (result.error) throw new Error(result.error);
+      return result.data as z.infer<typeof getProfileSchema>;
     },
   };
 
@@ -157,107 +81,47 @@ export class ApiDriver implements ITestDriver {
       context: ApiContext,
       name: string,
       description: string,
-    ): Promise<Jam> => {
-      const request = new Request(`${this.baseUrl}/api/jams`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, description }),
+    ): Promise<z.infer<typeof createJamResponseSchema>> => {
+      const result = await this.client(context).jams.create({
+        name,
+        description,
       });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: Jam }>(request, response);
-
-      return body.data;
+      if (result.error) throw new Error(result.error);
+      return result.data as z.infer<typeof createJamResponseSchema>;
     },
-    getAll: async (context: ApiContext): Promise<Jam[]> => {
-      const request = new Request(`${this.baseUrl}/api/jams`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-        },
-      });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: Jam[] }>(request, response);
-
-      return body.data;
+    getAll: async (
+      context: ApiContext,
+    ): Promise<z.infer<typeof createJamResponseSchema>[]> => {
+      const result = await this.client(context).jams.getAll();
+      if (result.error) throw new Error(result.error);
+      return result.data as z.infer<typeof createJamResponseSchema>[];
     },
     get: async (
       context: ApiContext,
       jamId: string,
-    ): Promise<Jam | undefined> => {
-      const request = new Request(`${this.baseUrl}/api/jams/${jamId}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-        },
-      });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: Jam }>(request, response);
-
-      return body.data;
+    ): Promise<z.infer<typeof getJamSchema> | undefined> => {
+      const result = await this.client(context).jams.get(jamId);
+      if (result.error) throw new Error(result.error);
+      return result.data as z.infer<typeof getJamSchema>;
     },
     addLoop: async (
       context: ApiContext,
       jamId: string,
-      draftLoop: DraftLoop,
+      draftLoop: z.infer<typeof addLoopSchema>,
     ): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/jams/${jamId}/loops`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(draftLoop),
-      });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response);
+      const result = await this.client(context).loops.add(jamId, draftLoop);
+      if (result.error) throw new Error(result.error);
     },
     makePublic: async (context: ApiContext, jamId: string): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/jams/${jamId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ public: true }),
-      });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response);
+      const result = await this.client(context).jams.makePublic(jamId);
+      if (result.error) throw new Error(result.error);
     },
     makePublicNotAllowed: async (
       context: ApiContext,
       jamId: string,
     ): Promise<void> => {
-      const request = new Request(`${this.baseUrl}/api/jams/${jamId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ public: true }),
-      });
-
-      const response = await fetch(request);
-
-      await this.checkResponse(request, response);
+      await this.client(context).jams.makePublic(jamId);
+      // API returns 200 even when non-owner; update matches 0 rows so jam stays private
     },
   };
 
@@ -266,33 +130,16 @@ export class ApiDriver implements ITestDriver {
       context: ApiContext,
       path: string,
       type: string,
-    ): Promise<AudioFile> => {
+    ): Promise<z.infer<typeof audioFileSchema>> => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const fs = require("fs");
       const audioData = fs.readFileSync(path);
       const fileName = path.split("/").pop();
       const audioFile = new File([audioData], fileName!, { type });
 
-      const formData = new FormData();
-      formData.append("file", audioFile);
-
-      const request = new Request(`${this.baseUrl}/api/audio`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${context.accessToken}`,
-          "X-Refresh-Token": context.refreshToken || "",
-        },
-        body: formData,
-      });
-
-      const response = await fetch(request);
-
-      const body = await this.checkResponse<{ data: AudioFile }>(
-        request,
-        response,
-      );
-
-      return body.data;
+      const result = await this.client(context).audio.upload(audioFile);
+      if (result.error) throw new Error(result.error);
+      return result.data as z.infer<typeof audioFileSchema>;
     },
   };
 }

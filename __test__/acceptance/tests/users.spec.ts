@@ -9,10 +9,10 @@ test.use({
 });
 
 test.describe("Users", () => {
-  test("can set and retrieve their username", async ({ browser }) => {
+  test("can set and retrieve their username", async () => {
     const uniqueUsername = `test-${Date.now()}-${Math.random().toString(36).substring(2)}`;
 
-    const user = await User.register(createDriver(browser));
+    const user = await User.register(createDriver());
 
     await user.setUsername(uniqueUsername);
 

@@ -16,8 +16,8 @@ test.use({
 });
 
 test.describe("Jams", () => {
-  test("solo", async ({ browser }) => {
-    const user = await User.register(createDriver(browser));
+  test("solo", async () => {
+    const user = await User.register(createDriver());
 
     const jam = await user.jams.create("Solo Jam", "This is a solo jam");
 
@@ -40,12 +40,12 @@ test.describe("Jams", () => {
     await user.jams.loopAtPositionIs(jam.id, 2, { audio: firstLoop });
   });
 
-  test("public", async ({ browser }) => {
-    const user = await User.register(createDriver(browser));
+  test("public", async () => {
+    const user = await User.register(createDriver());
 
     const jam = await user.jams.create("Public Jam", "This is a public jam");
 
-    const user2 = await User.register(createDriver(browser));
+    const user2 = await User.register(createDriver());
 
     await user2.jams.doesNotContain(jam.id);
 
@@ -54,9 +54,9 @@ test.describe("Jams", () => {
     await user2.jams.contains(jam.id);
   });
 
-  test("non-owners cannot change jam access", async ({ browser }) => {
-    const owner = await User.register(createDriver(browser));
-    const nonOwner = await User.register(createDriver(browser));
+  test("non-owners cannot change jam access", async () => {
+    const owner = await User.register(createDriver());
+    const nonOwner = await User.register(createDriver());
 
     const jam = await owner.jams.create(
       "Private Jam",

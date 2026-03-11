@@ -1,4 +1,4 @@
-import { ITestDriver, Context } from "../drivers/ITestDriver";
+import { ApiDriver, ApiContext } from "../drivers/apiDriver";
 import { Audio } from "./audio";
 import { Jams } from "./jams";
 import { expect } from "@playwright/test";
@@ -7,8 +7,8 @@ export class User {
   audio: Audio;
 
   private constructor(
-    private readonly driver: ITestDriver,
-    private context: Context,
+    private readonly driver: ApiDriver,
+    private context: ApiContext,
     public readonly email: string,
     public readonly password: string,
   ) {
@@ -21,7 +21,7 @@ export class User {
   }
 
   static async register(
-    driver: ITestDriver,
+    driver: ApiDriver,
     email = User.uniqueEmail(),
     password = "password123",
   ): Promise<User> {

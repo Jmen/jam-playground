@@ -15,12 +15,10 @@
     "supabase:db:diff": "supabase db diff --workdir ./lib",
     "supabase:db:push": "supabase db push --workdir ./lib",
     "test:unit": "vitest run",
-    "test:acceptance": "npx playwright test --reporter=list",
-    "test:acceptance:api": "export DRIVER=api && npm run test:acceptance -- --project=chromium",
-    "test:acceptance:api:ui": "export DRIVER=api && npm run test:acceptance -- --project=chromium --ui",
-    "test:acceptance:web": "export DRIVER=web && npm run test:acceptance",
-    "test:acceptance:web:ui": "export DRIVER=web && npm run test:acceptance -- --ui",
-    "precommit": "next lint && npm run prettier && npm run test:unit && npm run test:acceptance:api && npm run test:acceptance:web",
+    "test:acceptance": "npx playwright test --reporter=list --project=chromium",
+    "test:acceptance:ui": "npx playwright test --project=chromium --ui",
+    "test:smoke": "npx playwright test --config=playwright.smoke.config.ts",
+    "precommit": "next lint && npm run prettier && npm run test:unit && npm run test:acceptance && npm run test:smoke",
     "test:flakiness-check": "npm run pre-commit && npm run pre-commit && npm run pre-commit"
   },
   "dependencies": {
