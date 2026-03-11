@@ -5,7 +5,7 @@ import { describe, it } from "vitest";
 import { User } from "../dsl/user";
 import { createDriver } from "../config";
 
-describe("Users (API)", () => {
+describe("Users", () => {
   it("can set and retrieve their username", async () => {
     const uniqueUsername = `test-${Date.now()}-${Math.random().toString(36).substring(2)}`;
 

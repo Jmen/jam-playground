@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("register and create a jam", async ({ page }) => {
+test("smoke test - create a jam", async ({ page }) => {
   const email = `smoke-${Date.now()}@example.com`;
   await page.goto("/auth");
   await page.getByRole("tab", { name: /register/i }).click();

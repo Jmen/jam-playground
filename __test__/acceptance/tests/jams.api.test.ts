@@ -12,8 +12,8 @@ const textAudioFile1 = `${dataFolder}/VP3_174_Drums_Loop_Apple.wav`;
 const textAudioFile2 = `${dataFolder}/VP3_A#m_172_Synth_Chords_Loop_SaltyBreeze.wav`;
 const textAudioFile3 = `${dataFolder}/VP3_A#m_174_Bass_Synth_Loop_Vintage_Full.wav`;
 
-describe("Jams (API)", () => {
-  it("solo", async () => {
+describe("Jams", () => {
+  it("create a solo jam", async () => {
     const user = await User.register(createDriver());
 
     const jam = await user.jams.create("Solo Jam", "This is a solo jam");
@@ -37,7 +37,7 @@ describe("Jams (API)", () => {
     await user.jams.loopAtPositionIs(jam.id, 2, { audio: firstLoop });
   });
 
-  it("public", async () => {
+  it("create a public jam", async () => {
     const user = await User.register(createDriver());
 
     const jam = await user.jams.create("Public Jam", "This is a public jam");
@@ -51,7 +51,7 @@ describe("Jams (API)", () => {
     await user2.jams.contains(jam.id);
   });
 
-  it("non-owners cannot change jam access", async () => {
+  it("non-owners cannot make a jam public", async () => {
     const owner = await User.register(createDriver());
     const nonOwner = await User.register(createDriver());
 

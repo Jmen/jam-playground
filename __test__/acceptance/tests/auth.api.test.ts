@@ -5,8 +5,8 @@ import { describe, it } from "vitest";
 import { User } from "../dsl/user";
 import { createDriver } from "../config";
 
-describe("Authentication (API)", () => {
-  it("can register, sign out, and sign in", async () => {
+describe("Authentication", () => {
+  it("new user", async () => {
     const user = await User.register(createDriver());
 
     await user.signOut();
