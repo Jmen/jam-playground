@@ -77,7 +77,7 @@ describe("jsonRequest", () => {
       password: "password",
     });
 
-    expect(result).toEqual({ error: "An unexpected error occurred" });
+    expect(result).toEqual({ error: "Network error" });
   });
 
   it("omits body for bodyless requests", async () => {
@@ -100,8 +100,8 @@ describe("formDataRequest", () => {
 
     const [url, options] = vi.mocked(global.fetch).mock.calls[0];
     expect(url).toBe("/api/audio");
-    expect(options.method).toBe("POST");
-    expect(options.body).toBeInstanceOf(FormData);
-    expect(options.headers).toBeUndefined();
+    expect(options?.method).toBe("POST");
+    expect(options?.body).toBeInstanceOf(FormData);
+    expect(options?.headers).toBeUndefined();
   });
 });

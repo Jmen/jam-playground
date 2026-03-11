@@ -53,8 +53,10 @@ export function createApi(config: ApiConfig = {}) {
       }
 
       return { data: result.data, error: undefined };
-    } catch {
-      return { data: undefined, error: "An unexpected error occurred" };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred";
+      return { data: undefined, error: message };
     }
   }
 
@@ -89,8 +91,10 @@ export function createApi(config: ApiConfig = {}) {
       }
 
       return { data: result.data, error: undefined };
-    } catch {
-      return { data: undefined, error: "An unexpected error occurred" };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred";
+      return { data: undefined, error: message };
     }
   }
 

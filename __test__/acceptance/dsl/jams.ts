@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiDriver, ApiContext } from "../drivers/apiDriver";
-import { expect } from "@playwright/test";
+import { expect } from "vitest";
 import { addLoopSchema } from "@/app/api/jams/[id]/loops/schema";
 import { getJamSchema } from "@/app/api/jams/[id]/schema";
 import { createJamResponseSchema } from "@/app/api/jams/schema";

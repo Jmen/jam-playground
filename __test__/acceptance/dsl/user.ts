@@ -1,7 +1,7 @@
 import { ApiDriver, ApiContext } from "../drivers/apiDriver";
 import { Audio } from "./audio";
 import { Jams } from "./jams";
-import { expect } from "@playwright/test";
+import { expect } from "vitest";
 export class User {
   jams: Jams;
   audio: Audio;

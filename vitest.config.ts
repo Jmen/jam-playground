@@ -7,10 +7,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
+    env: {
+      BASE_URL: process.env.BASE_URL || "http://localhost:3000",
+    },
     include: [
       "app/**/*.test.{ts,tsx}",
       "lib/**/*.test.{ts,tsx}",
       "components/**/*.test.{ts,tsx}",
+      "__test__/acceptance/tests/**/*.api.test.{ts,tsx}",
     ],
     setupFiles: ["./vitest.setup.ts"],
   },

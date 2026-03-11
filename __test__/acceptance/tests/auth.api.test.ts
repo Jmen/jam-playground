@@ -1,15 +1,12 @@
-import { test } from "@playwright/test";
+/**
+ * @vitest-environment node
+ */
+import { describe, it } from "vitest";
 import { User } from "../dsl/user";
 import { createDriver } from "../config";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
-
-test.use({
-  baseURL: BASE_URL,
-});
-
-test.describe("Authentication", () => {
-  test("can register, sign out, and sign in", async () => {
+describe("Authentication (API)", () => {
+  it("can register, sign out, and sign in", async () => {
     const user = await User.register(createDriver());
 
     await user.signOut();
@@ -17,7 +14,7 @@ test.describe("Authentication", () => {
     await user.signIn(user.email, user.password);
   });
 
-  test("password reset", async () => {
+  it("password reset", async () => {
     const email = User.uniqueEmail();
     const initialPassword = "initial-password";
     const updatedPassword = "updated-password";

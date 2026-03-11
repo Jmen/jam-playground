@@ -17,8 +17,9 @@
 | API              | Next.js           |
 | Authentication   | Supabase Auth     |
 | Database         | Supabase Postgres |
-| Unit tests       | Jest              |
-| Acceptance Tests | Playwright        |
+| Unit tests       | Vitest            |
+| Acceptance Tests | Vitest (API)      |
+| Smoke tests      | Playwright        |
 | CI pipeline      | GitHub Actions    |
 | Hosting          | Vercel            |
 
@@ -64,6 +65,4 @@ This is a layer of objects which represents the interactions that can be perform
 
 This is the layer which actually talks to the real system under test and converts the DSL interactions into the protocol required.
 
-This project implements two types of drivers, Web UI with Playwright, and an API driver with Fetch. 
-
-The pipeline runs both of these sets of tests in parallel, and means that the same tests can be run at two levels of abstract, to isolate issues between the Web UI and the API backend.
+Acceptance tests use an API driver. Smoke tests use Playwright for critical UI journeys (e.g. register and create a jam).

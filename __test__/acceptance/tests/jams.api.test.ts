@@ -1,8 +1,9 @@
-import { test } from "@playwright/test";
+/**
+ * @vitest-environment node
+ */
+import { describe, it } from "vitest";
 import { User } from "../dsl/user";
 import { createDriver } from "../config";
-
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 const dataFolder = "./__test__/acceptance/data";
 const wavMimeType = "audio/wav";
@@ -11,12 +12,8 @@ const textAudioFile1 = `${dataFolder}/VP3_174_Drums_Loop_Apple.wav`;
 const textAudioFile2 = `${dataFolder}/VP3_A#m_172_Synth_Chords_Loop_SaltyBreeze.wav`;
 const textAudioFile3 = `${dataFolder}/VP3_A#m_174_Bass_Synth_Loop_Vintage_Full.wav`;
 
-test.use({
-  baseURL: BASE_URL,
-});
-
-test.describe("Jams", () => {
-  test("solo", async () => {
+describe("Jams (API)", () => {
+  it("solo", async () => {
     const user = await User.register(createDriver());
 
     const jam = await user.jams.create("Solo Jam", "This is a solo jam");
@@ -40,7 +37,7 @@ test.describe("Jams", () => {
     await user.jams.loopAtPositionIs(jam.id, 2, { audio: firstLoop });
   });
 
-  test("public", async () => {
+  it("public", async () => {
     const user = await User.register(createDriver());
 
     const jam = await user.jams.create("Public Jam", "This is a public jam");
@@ -54,7 +51,7 @@ test.describe("Jams", () => {
     await user2.jams.contains(jam.id);
   });
 
-  test("non-owners cannot change jam access", async () => {
+  it("non-owners cannot change jam access", async () => {
     const owner = await User.register(createDriver());
     const nonOwner = await User.register(createDriver());
 

@@ -14,9 +14,8 @@
     "supabase:db:reset": "supabase db reset --workdir ./lib",
     "supabase:db:diff": "supabase db diff --workdir ./lib",
     "supabase:db:push": "supabase db push --workdir ./lib",
-    "test:unit": "vitest run",
-    "test:acceptance": "npx playwright test --reporter=list --project=chromium",
-    "test:acceptance:ui": "npx playwright test --project=chromium --ui",
+    "test:unit": "vitest run app lib components",
+    "test:acceptance": "vitest run __test__/acceptance/tests",
     "test:smoke": "npx playwright test --config=playwright.smoke.config.ts",
     "precommit": "next lint && npm run prettier && npm run test:unit && npm run test:acceptance && npm run test:smoke",
     "test:flakiness-check": "npm run pre-commit && npm run pre-commit && npm run pre-commit"
